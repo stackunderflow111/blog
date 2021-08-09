@@ -1,9 +1,13 @@
 ---
 title: Iptables Quick Notes
-date: 2021-04-22
-image: images/iptables.png
+author: Stack Underflow
+date: '2021-04-22'
 categories:
   - note
+tags:
+  - linux
+  - networking
+image: images/iptables.png
 ---
 
 Iptables is an utility in Linux which controls IP packets processing. It works on the third layer -- Internet layer, and operates on IP packets. [This video](https://youtu.be/w_vGD-96O54) introduces the basics of iptables, and this is a quick note. 
