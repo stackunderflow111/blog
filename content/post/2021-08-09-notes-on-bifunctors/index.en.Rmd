@@ -4,12 +4,12 @@ description: From Bartosz Milewski's lecture
 author: Stack Underflow
 date: '2021-08-09'
 categories:
-  - Notes
+  - Category Theory
 tags:
   - bifuntor
   - category theory
 slug: note-on-bifunctors
-image: images/definition.png
+image: images/functors.jpeg
 ---
 
 This is a note based on the lecture about [functoriality and bifunctors](https://youtu.be/pUQ0mmbIdxs). The same topic is also discussed in the [*Functoriality*](https://bartoszmilewski.com/2015/02/03/functoriality/) chapter from the book [*Category Theory for Programmers*](https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/).
