@@ -23,11 +23,11 @@ params:
         - post
     featuredImageField: image
     rssFullContent: true
-    favicon:
+    favicon: /img/avatar.png
 
     footer:
-        since: 2020
-        customText:
+        since: 2021
+        customText: Using <a href="https://github.com/rstudio/blogdown" target="_blank" rel="noopener">Blogdown</a> Framework and R Markdown
 
     dateFormat:
         published: Jan 02, 2006
