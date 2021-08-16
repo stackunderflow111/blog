@@ -77,7 +77,7 @@ Similarly, In Haskell you cannot define a function which returns `Void` -- becau
 
 In conclusion, C++ `void` is not an empty type but a unit type, and it's equivalent to Haskell `()` instead of `Void`.
 
-Note that in other languages, we have functions returning the empty type and they can be useful. For example, in Scala a function returning `Nothing` is used for situations like exceptions (i.e. the function does not return normally). Note that from the mathematical perspective functions should always return, so the Scala way of returing `Nothing` is kind of a hack. Generally we still think that there is no functions returning an empty type.
+Note that in other languages, we have functions returning the empty type and they can be useful. For example, in Scala a function returning `Nothing` is used for situations like exceptions (i.e. the function does not return normally). Note that from the mathematical perspective functions should always return, so the Scala way of returning `Nothing` is kind of a hack. Generally we still think that there is no functions returning an empty type.
 
 Let's go back to sum type. `Void` is indeed the identity element for sum operation because `Either Void a` is isomorphic to `a` (there is no way to construct the `Left` version of `Either Void a` so it's essentially the same as `a`). As a result, the set of types is also a commutative monoid up to the sum operation, and the identity element is the empty type `Void`. 
 

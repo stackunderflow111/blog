@@ -24,7 +24,7 @@ case object Nil extends List[Nothing]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
 ```
 
-Notice the `+` sign in `List[+A]`, which means `List` is covariant. For example, if we have `Cat` and `Dog` extending from `Animal`, `List[Dog]` and `List[Cat]` will be subtypes of `List[Animal]`. Also note that the object `Nil` extends from `List[Nothing]`, which makes it a subclass of `List[Dog]`, `List[Cat]`, or any other `List[A]` because `Nothing` is a subtype of all types. 
+Notice the `+` sign in `List[+A]`, which means `List` is covariant. For example, if we have `Cat` and `Dog` extending from `Animal`, `List[Dog]` and `List[Cat]` will be subtypes of `List[Animal]`. Also note that the object `Nil` extends from `List[Nothing]`, which makes it a subclass of `List[Dog]`, `List[Cat]`, or any other `List[A]` because `Nothing` is the subtype of all types. 
 
 An example of contravariance in Scala is the following `Printer` examples. (Taken from [Tour of Scala](https://docs.scala-lang.org/tour/variances.html))
 
@@ -73,9 +73,9 @@ public class Collections {
 }
 ```
 
-In the example above, we get values from `src` with `src.get()` and `put` values to `dest` with `dest.set`, so we use `extends` for `src` (covariance) and `super` for `dest` (contravariance).
+In the example above, we get values from `src` with `src.get()` and `put` values to `dest` with `dest.set()`, so we use `extends` for `src` (covariance) and `super` for `dest` (contravariance).
 
-In Scala, the get-put principle also works. `List` is immutable and we only `get` values from it, so it's made a covariant class. For `Printer` it's a little tricky. `Printer` classes doesn't store objects, but we can still think of the `print` method to be kind of a `put` operation since it takes a parameter of type `A`. As a result, the `Printer` classes is contravariant.
+In Scala, the get-put principle also holds. `List` is immutable and we only `get` values from it, so it's made a covariant class. For `Printer` it's a little tricky. `Printer` classes doesn't store objects, but we can still think of the `print` method to be kind of a `put` operation since it takes a parameter of type `A`. As a result, the `Printer` classes is contravariant.
 
 Notice the difference of Java and Scala generics: In Java we declare whether a generic class is covariant or contravariant when we declare variables of the class (using `super` or `extends`), but in Scala we do it when we define the class (using `+` or `-`). As a result, in Java a class can sometimes be covariant and sometimes be contravariant, like the `List` class in the Java `copy` example above, but in Scala, a class can only be either covariant or contravariant (or, of course, invariant) consistently. 
 
@@ -99,7 +99,7 @@ Here is the answer. The code compiles but it doesn't run correctly, a `java.lang
 
 ## Covariance and Contravariance for functors
 
-Functors can also be covariant or contravariant. Consider the following type `List` in Haskell.
+Functors can also be covariant or contravariant. Consider the following type constructor `List` in Haskell.
 
 ``` haskell
 data List a = Nil | Cons a (List a)
@@ -119,7 +119,7 @@ instance Functor List where
     fmap f (Cons x t) = Cons (f x) (fmap f t)
 ```
 
-A contravariant functor is, by contrast, a type constructor `f` which we could define a `contramap` which takes a function `b -> a` and returns another one `f a -> f b`.
+A contravariant functor is, by contrast, a type constructor `f` which we could define a `contramap` taking a function `b -> a` and returning another one `f a -> f b`.
 
 ``` haskell
 contramap :: (b -> a) -> (f a -> f b)
@@ -140,7 +140,7 @@ instance Contravariant (Op r) where
     contramap f g = g . f
 ```
 
-Notice that `f` applies before `g`. Since `f` is `b -> a` and `g` is `Op r a` (or `a -> r`) and the result type is `Op r b` (or `b -> r`), we should apply `f` first to convert `b` to `a` and then `g` which converts `a` to `r`. In other words, the `contramap` function of the writer type inserts the function `b -> a` before the function `a -> r`.
+Notice that `f` applies before `g`. Since `f` is `b -> a` and `g` is `Op r a` (or `a -> r`) and the result type is `Op r b` (or `b -> r`), we should apply `f` first to convert `b` to `a` and then `g` which converts `a` to `r`. In other words, the `contramap` function of the writer type "inserts" the function `b -> a` before the function `a -> r`.
 
 ## Covariance and Contravariance, categorically
 
