@@ -4,9 +4,11 @@ author: Stack Underflow
 date: '2021-08-10'
 categories:
   - Functional Programming
+  - Category Theory
 tags:
-  - category theory
-  - functional programming
+  - haskell
+  - scala
+  - c++
 slug: algebratic-data-types
 description: Can we define addition and multiplication for types?
 image: images/2+2.jpeg
@@ -14,11 +16,15 @@ image: images/2+2.jpeg
 
 ## Product Types
 
-Just like we can do `\(+\)` and `\(\times\)` operations on numbers, we can also do them for types. We define the product of two types to be a pair. In Haskell, it's a pair `(a, b)`, like `(Int, Bool)`. In C++ we also have similar structure `std::pair`, which is also a product type.
+Just like we can do `\(+\)` and `\(\times\)` operations on numbers, we can also do them for types. We define the product of two types to be a pair. In Haskell, it's a pair `(a, b)`, like `(Int, Bool)`. In C++ we have a similar structure `std::pair`, which is also a product type.
 
 Why a pair is called a product? We can make sense of it by counting possible values. Suppose we have 2 possible values for `Bool` and 256 for `Char`, how many possible values we have for `(Bool, Char)`? The answer is `\(2 \times 256 = 512\)`. Generally, if we have `\(n\)` possible value for type `a`, and `\(m\)` for type `b`, then `(a, b)` will have `\(n * m\)` possible values, that is why we denote `(a, b)` to be the *product* of `a` and `b`, or `a * b`. The counting method doesn't work if a type has infinitely many possible value, like `String`, but even in this case, we still call pairs product types.
 
+### Commutativity and Associativity
+
 We also have commutative law and associative law for product types. For example, `(a, b)` and `(b, a)` and not strictly the same -- they have different memory layouts, but they are isomorphic, which means there is a one-to-one function between them (here it's just the `swap` function which exchanges the first and second member of the pairs). In this case, commutative law still holds -- up to isomorphism. Similarly, associative law also holds, which means `((a, b), c)` and `(a, (b, c))` are isomorphic.
+
+### Identity Element
 
 The product operation for numbers has an identity element 1 such that `\(1 \times a = a\)` and `\(a \times 1 = a\)`. Note that product is commutative so it's sufficient to specify either `\(1 \times a = a\)` or `\(a \times 1 = a\)`. Do we also have such identity element for types? According to the approach of counting possible values, we want to find a type which has only one value. In fact, such a type is called a *unit type*. In Haskell the unit type is written as `()` and contains only one value: `()`. Similar types are `void` in C++, `NoneType` in Python (the corresponding value is `None`) and `Unit` in Scala (the value is `()`). 
 
@@ -43,7 +49,9 @@ Either (Either a b) c  ~ Either a (Either b c)
 
 (`~` means isomorphic)
 
-But what is the identity element corresponding to 0 in numbers? It should be a type with 0 possible values, so it's called the empty type. In Haskell it's `Void` and in Scala it's `Nothing`. A lot of languages do not have such type, like C++. Note that the type `void` in C++ is a unit type instead of an empty type. Here is the difference between Haskell `Void` and C++ `void`. 
+### Identity Element
+
+What is the identity element corresponding to 0 in numbers? It should be a type with 0 possible values, so it's called the empty type. In Haskell it's `Void` and in Scala it's `Nothing`. A lot of languages do not have such type, like C++. Note that the type `void` in C++ is a unit type instead of an empty type. Here is the difference between Haskell `Void` and C++ `void`. 
 
 In Haskell, we can define functions like this:
 
@@ -69,15 +77,19 @@ Similarly, In Haskell you cannot define a function which returns `Void` -- becau
 
 In conclusion, C++ `void` is not an empty type but a unit type, and it's equivalent to Haskell `()` instead of `Void`.
 
-Note that in other languages, we have functions returning the empty type and they can be useful. For example, in Scala a function returning `Nothing` is used for situations like exceptions (i.e. the function does not return normally).
+Note that in other languages, we have functions returning the empty type and they can be useful. For example, in Scala a function returning `Nothing` is used for situations like exceptions (i.e. the function does not return normally). Note that from the mathematical perspective functions should always return, so the Scala way of returing `Nothing` is kind of a hack. Generally we still think that there is no functions returning an empty type.
 
 Let's go back to sum type. `Void` is indeed the identity element for sum operation because `Either Void a` is isomorphic to `a` (there is no way to construct the `Left` version of `Either Void a` so it's essentially the same as `a`). As a result, the set of types is also a commutative monoid up to the sum operation, and the identity element is the empty type `Void`. 
 
-Below is a table summerizing all the laws about types.
+## Summary of Product and Sum Types
+
+Below is a table summerizing product and sum types.
 
 
 | Name      | Numbers | Types|
 | ----------- | ----------- | --------- |
+| product | `\(a \times b\)` | `(a, b)`|
+| sum   | `\(a + b\)`  | `Either a b = Left a \| Right b`|
 | product commutative law | `\(a \times b = b \times a\)` | `(a, b) ~ (b, a)`|
 | product associative law   | `\((a \times b) \times c = a \times (b \times c)\)`  | `((a, b), c) ~ (a, (b, c))`|
 | product identity value  | `\(1 \times a = a\)`  | `((), a) ~ a`|
@@ -112,6 +124,8 @@ In the table above, `True`, `False` and `Nothing` are all unit types because the
 data Bool = Either () ()
 data Maybe a = Either () a
 ```
+
+### List
 
 A more interesting example is `List`, since it's a recursive type
 
@@ -158,6 +172,8 @@ List a = Nil
         | Cons a (Cons a (Cons a Nil)) 
         | ... 
 ```
+
+### Binary Tree
 
 Another example is the definition of binary trees
 
@@ -211,15 +227,15 @@ case class Cons[+A](head: A, tail: List[A]) extends List[A]
 
 While being a functional language, Scala defines algebratic data types using a different form than Haskell, that is because Scala is also an object oriented langauge.
 
-## Functions and Exponantials
+## Function Types and Exponentials
 
-We already know that in some languages (primarily functional languages), functions are also data types, which means we can use functions as function arguments, return types, or define a variable whose type is a function. So how does functions fit into algebratic data types? 
+We already know that functions also have types. A function taking type `a` and returning `b` can be denoted as `a -> b`. Note that here we only consider pure functions with only one argument. Functions with multiple arguments could be obtained by currying. So how does function types fit into algebratic data types? 
 
-The answer might be surprising: functions are exponantials! In fact, function of type `a -> b` could be represented as `\(b^a\)`. 
+The answer might be surprising: function types are exponentials! In fact, the function type `a -> b` could be represented as `\(b^a\)`. 
 
-Why? Here comes our old friend -- couting possible values. Say we have type `Bool` which has 2 possible values, and type `Char` which has 256. How many possible functions are there from `Char` to `Bool`? The answer is `\(\underbrace{2 \times 2 \times 2 \cdots \times 2}_{256}\)`, or `\(2^{256}\)`. Generally, there are `\(m^n\)` possible functions from a type `a` with `\(n\)` values to a type `b` with `\(m\)` values, so the functions between `a` and `b` are denoted as `\(b^a\)`. Even if there might be infinitely many inhabitants we still denote it as an exponantial.
+Why? Here comes our old friend -- counting possible values. Say we have type `Bool` which has 2 possible values, and type `Char` which has 256. How many possible functions are there from `Char` to `Bool`? The answer is `\(\underbrace{2 \times 2 \times 2 \cdots \times 2}_{256}\)`, or `\(2^{256}\)`. Generally, there are `\(m^n\)` possible functions from a type `a` with `\(n\)` values to a type `b` with `\(m\)` values, so the function type `a -> b` are denoted as `\(b^a\)`. Even if there might be infinitely many inhabitants we still denote it as an exponential.
 
-Below are the interesting laws about functions.
+Below are the interesting laws about function types.
 
 | Name      | Numbers | Types| Description |
 | ----------- | ----------- | --------- | -------- |
@@ -229,15 +245,15 @@ Below are the interesting laws about functions.
 | power of 1   | `\((1^a = 1)\)`  | `a -> () ~ Unit`| There is only one function from any type to `()`|
 | 2nd power | `\(a^2 = a \times a\)`  | `Bool -> a ~ (a, a)`| First element defines the mapping for `True`, and second element defines the mapping for `False`|
 | nth power  | `\(a^n = \underbrace{a \times a \cdots \times a}_{n}\)`  | `<a type containing n elements> -> a ~ (a, a, ... a)`|
-| exponantials of sums | `\(a^{b+c} = a^b\times c^c\)` | `Either a b -> c ~ (a -> c, b -> c)`|
-| exponantials over exponantials   | `\((a^b)^c = a^{b\times c}\)`  | `c -> b -> a ~ (b, c) -> a`| function currying |
-| exponantials over products  | `\((a \times b)^c = a^c \times b^c\)`  | `c -> (a, b) ~ (c -> a, c -> b)`|
+| exponentials of sums | `\(a^{b+c} = a^b\times c^c\)` | `Either a b -> c ~ (a -> c, b -> c)`|
+| exponentials over exponentials   | `\((a^b)^c = a^{b\times c}\)`  | `c -> b -> a ~ (b, c) -> a`| function currying |
+| exponentials over products  | `\((a \times b)^c = a^c \times b^c\)`  | `c -> (a, b) ~ (c -> a, c -> b)`|
 
 ## Conclusion
 
 There is magical similarities between type algebra and number algebra. The similaries come from that we could define types algebraically, using constructs like sum, product and exponential.
 
-## Other resources
+## Further Readings
 
 I recommend the book (in the form of a series of blog posts) [Category Theory for Programmers](https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/) and the [lecture videos](https://youtube.com/playlist?list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_) (by the same author) if you want to learn more.
 

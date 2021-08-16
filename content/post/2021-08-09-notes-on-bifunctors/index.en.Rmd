@@ -7,7 +7,6 @@ categories:
   - Category Theory
 tags:
   - bifuntor
-  - category theory
 slug: note-on-bifunctors
 image: images/functors.jpeg
 ---
@@ -32,9 +31,9 @@ Instead of defining a new concept from scratch, we reuse the concept of functors
 
 A functor maps not only the objects but also the morphisms between objects. Similarly, a bifunctor should also somehow map the morphisms. Suppose we have another pair of objects $a'$ and $b'$ which are represented by an object $(a', b')$ in $C \times D$, and we have $f$ goes from $a$ to $a'$ and $g$ from $b$ to $b'$, we could thus define a new morphism called $(f, g)$ in $C \times D$ which maps the first component of $(a, b)$ using its first component $f$, and the second component using $g$. Note that every morphism from $(a, b)$ to $(a', b')$ is constructed by picking one morphism from the morphisms between $a$ and $a'$, and another one from the morphisms between $b$ and $b'$. Therefore, if there are $m$ morphisms between $a$ and $a'$, and $n$ between $b$ and $b'$, there will be $m \times n$ morphisms between $(a, b)$ and $(a', b')$.
 
-A bifunctor, as a result, is defined as a functor $F$ from $C \times D$ to $E$, which maps $(a, b)$ to $F a b$ and $(a', b')$ to $F a' b'$. It also preserves the morphism structure by mapping $(f, g)$ to a morphism $h$ between $F a b$ and $F a' b'$.
+A bifunctor, as a result, is defined as a functor $F$ from $C \times D$ to $E$, which maps $(a, b)$ to $F a b$ and $(a', b')$ to $F a' b'$. It also preserves the morphism structure by mapping $(f, g)$ to a morphism $F (f, g)$ between $F a b$ and $F a' b'$.
 
-However, we usually deal with a single category when working on *Hask*, so actually both $D$ and $E$ are the same as $C$. Therefore, we could think of a bifunctor as one which takes two objects $a$ and $b$ and maps them to another object $F a b$. The bifunctor also maps two morphisms, $f$ and $g$, to $h$.
+However, we usually deal with a single category when working on *Hask*, so actually both $D$ and $E$ are the same as $C$. Therefore, we could think of a bifunctor as one which takes two objects $a$ and $b$ and maps them to another object $F a b$. The bifunctor also maps two morphisms, $f$ and $g$, to $F f g$.
 
 ![definition on single category](images/definition-single.png)
 

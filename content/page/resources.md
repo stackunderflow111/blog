@@ -26,6 +26,8 @@ The Udemy course [JavaScript: Understanding the Weird Parts](https://www.udemy.c
 
 The educative course [Functional Programming Patterns With RamdaJS](https://www.educative.io/courses/functional-programming-patterns-with-ramdajs) introduces functional programming concepts and Ramda.js.
 
+The book [Functional Programming in Scala](https://learning.oreilly.com/library/view/functional-programming-in/9781617290657/) introduces functional programming with Scala. I am currently reading this book with a group of colleagues. It has a lot of exercises to make sure you understand the concepts well. One of the problems of this book is that it might use certain Scala features without explaining them in detail, so be prepared for some googling.
+
 ## Category Theory
 
 The book (in the form of a series of blog posts) [Category Theory for Programmers](https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/) explains category theory and its connection to programming. The author also has [lecture videos](https://www.youtube.com/user/DrBartosz/playlists) on the same topic. I do find the lectures more approachable than the book. I only finished the first part of the videos and the corresponding chapters of the book, and I think it's more  than sufficient for an average programmer like me:) *(Strongly Recommended)*

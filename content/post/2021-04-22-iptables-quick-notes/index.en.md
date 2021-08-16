@@ -5,7 +5,6 @@ date: '2021-04-22'
 categories:
   - Linux
 tags:
-  - linux
   - networking
 image: images/iptables_filter.jpeg
 ---
