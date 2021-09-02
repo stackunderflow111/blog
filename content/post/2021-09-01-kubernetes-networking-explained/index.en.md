@@ -7,6 +7,7 @@ categories:
   - Tech
 tags: 
   - kubernetes
+  - networking
 description: a blog series
 ---
 
