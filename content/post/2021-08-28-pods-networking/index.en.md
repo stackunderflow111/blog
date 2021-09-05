@@ -33,13 +33,9 @@ The first requirement for Kubernetes networking is that containers running in th
 
 The second, and the most important requirement for pods networking is: *Pods should communicate with each other without NAT*.
 
-What does it mean? For example, pod 1 with IP address 192.168.1.10 sends a packet to pod 2 192.168.2.10. In NAT-less communication, pod 2 sees the source address to be 192.168.1.10 instead of something else. In other words, the packet has not been NATed.
+What does it mean? For example, pod 1 with IP address 192.168.1.10 sends a packet to pod 2 192.168.2.10. If we configured NAT according to [Access the Internet from a network namespace](http://localhost:4321/p/network-namespaces/#access-the-internet-from-a-network-namespace), pod 2 will see the source IP address to be 172.16.94.11. However, we want it to see 192.168.1.10. In other words, the packet should not be NATed.
 
 ![natless](images/natless.png)
-
-The NAT-less feature can be extended to nodes-to-pods communication. If a process running on a node (but outside of any pods) communicates with a pod, either on the same node or on another node, no NAT should occur. Here comes our third requirement:
-
-*Nodes and Pods should communicate with each other without NAT*.
 
 Actually, the third requirement only applies to platforms that support pods running in the host network (e.g. Linux). This article only discusses Linux platform.
 
@@ -94,7 +90,11 @@ which sends the traffic to node2. The incoming rule on node2 sends the traffic t
 
 In this way, the two pods communicate with each other without using NAT. The rule `192.168.2.0/24 via 172.16.94.12 dev eth0` only enables communication between pods on node1 and node2. If another node, say, node3 is added, which serves pods 192.168.3.0/24 with IP address 172.16.94.13, we need another rule `192.168.3.0/24 via 172.16.94.13 dev eth0`. Generally, for a cluster with `n` nodes, each node has `n-1` outgoing rules for all of its neighbors.
 
-Also note that nodes-to-pods communication also goes through the outgoing and incoming routing rules, so nodes and pods could communicate without NAT as well. It doesn't mean we do not do NAT at all. NAT does occur when a pod access something outside of the nodes and pods network, for example, the Internet, so MASQUERADE rules still need to be configured in iptables.
+NAT-less communication between pods doesn't mean we do not do NAT at all. NAT does occur when a pod access something outside of the pods network, for example, the Internet. We can configure the MASQUERADE rule like the following:
+
+```shell
+iptables -t nat -A POSTROUTING ! -d 192.168.0.0/16 -j MASQUERADE
+```
 
 ## Kubenet
 
@@ -183,7 +183,7 @@ With the `proxy_arp` option, the host will answer ARP requests from the pods. Fo
 
 For incoming packets, the `cali*` rules send them to the destination pods directly, without going through any bridge. What is important is the `blackhole` rule, which drops all the packets destining a non-existing pod. Without the blackhole rule the packets will be sent back to the outside of the host because they match the `default` rule.
 
-This is calico replaces the bridge. The bridge's functionality is implemented by a magical IP address, the `proxy_arp` configuration and the `192.168.1.* dev cali*` routing rules in the host network. There will be `m` `cali*` interfaces and their `m` corresponding routing rules if there are `m` pods running on a node, plus a blackhole rule.
+This is how calico replaces the bridge. The bridge's functionality is implemented by a magical IP address, the `proxy_arp` configuration and the `192.168.1.* dev cali*` routing rules in the host network. There will be `m` `cali*` interfaces and their `m` corresponding routing rules if there are `m` pods running on a node, plus a blackhole rule. By removing the bridge out, the override related to Linux bridge is eliminated so we get better performance.
 
 ### Cross-nodes pods networking
 
@@ -202,10 +202,4 @@ The table summarizes the pros and cons of different networking configurations.
 | flannel   | simple, works for large clusters and on-premise clusters  | performance not good enough  |
 | calico   | works for large clusters and on-premise clusters, good performance  | not so simple |
 
-What we should remember is that whichever configuration wqe choose, the goal is the same:
-
-- Pods should communicate with each other without NAT
-- Nodes and Pods should communicate with each other without NAT
-
-
-
+What we should remember is that whichever configuration we choose, the goal is the same: Pods should communicate with each other without NAT.

@@ -34,7 +34,7 @@ The video series below explains iptables and other networking related topics in 
 - [金枪鱼之夜：坏人的 iptables 小讲堂](https://youtu.be/w_vGD-96O54)
 - [金枪鱼之夜：坏人的 iptables 小讲堂第二弹](https://youtu.be/Vnh8hYk6wZE) 
 
-[Network Namespaces Basics Explained in 15 Minutes](https://youtu.be/j_UUnlVC2Ss) is a great introductory video on network namespaces. The problem is that there are several errors in the video.
+[Network Namespaces Basics Explained in 15 Minutes](https://youtu.be/j_UUnlVC2Ss) is a great introductory video on network namespaces. However there are several errors in this video so pay attention.
 
 ### Pods networking
 
