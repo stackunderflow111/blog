@@ -1,5 +1,5 @@
 ---
-title: Route tables and Iptables for Routing
+title: Iptables for Routing
 author: Stack Underflow
 date: '2021-08-28'
 categories:
@@ -8,65 +8,8 @@ tags:
   - networking
   - Linux
 image: images/iptables-filter.jpeg
-description: the first post in series Kubernetes Networking Explained
+description: the second post in series Kubernetes Networking Explained
 ---
-
-Route tables and iptables are two utilities that are used in Linux for routing. This article explains how to use them for routing packets. 
-
-## Route tables
-
-*Routing* is a process that determines the output interface of an IP packet by matching its destination address. Other information could also be set during routing, like the gateway address of the packet. The routing process is generally configured by *route tables*, which is shown using the command `ip route`. 
-
-### Home network configuration
-
-Below is a typical configuration for a home network, where the two machine (PC1 and PC2) are in a local network (`192.168.1.0/24`) and they connect to the Internet by a router. Note that here I show two PCs, but actually they could be any devices (mobiles phones, TVs, or gaming consoles, etc.) and there could be any number of them.
-
-![home network](images/network.png)
-
-You might be wondering: Oh I do not have a switch at home! In fact, the typical home routers have a switch embedded. All machines connected to a LAN interface are connected to the embedded switch, which in turn connects to a router port. The WAN interface is connected to the other router port. Note that the router in typical home routers has only two ports, so it only creates two networks: the local network and the public network.
-
-![home router](images/home-router.png)
-
-What will the route table on PC1 look like? Possibly the following (simplest case)
-
-``` sh
-192.168.1.0/24 dev eth0  # rule for local network
-default via 192.168.1.1 dev eth0   # rule for public network
-```
-
-The first rule directs all traffic whose destination matching `192.168.1.0/24` to `eth0`, and the second rule directs traffic matching `0.0.0.0/0` (`default` is the alias for `0.0.0.0/0`) to the same interface. The route table rules follow the "longest prefix match" rule. For example, a packet goes to `192.168.1.3` matches both the first and second rule (the second rule matches any IP addresses since its prefix is `/0`), but the first rule is selected since it has a longer prefix length (`24 > 0`). As a result of the longest prefix rule, the route table above sends all local network traffic to rule 1, and all other traffic (public network traffic) to rule 2. The difference between the two rules is that rule 2 has a `via` keyword.
-
-What does the keyword `via` mean in the second rule? The address after `via` is called *gateway*. Basically, for addresses in the same local network, we do not have a gateway (like the first rule). While for addresses which are in a different network, we set the gateway to the address of the router (like the second rule). 
-
-### Local traffic
-
-For route table rules without a gateway, the destination machine must be in the same network as the sending machine. The sending machine finds the MAC address for the destination by the *ARP (Address Resoluition Protocol)* protocol. Below is the example of sending a packet from PC1 to PC2. This traffic matches the first rule in the route table, which doesn't have a gateway address. In this case, PC1 assembles the Ethernet frame by
-
-1. PC1 looks for the MAC address of `192.168.1.3` by broadcasting an ARP request to the local network, which asks all other hosts: *Who is `192.168.1.3`*?
-2. PC2 answers PC1 with its own MAC address, and PC1 sets it as the destination MAC address of the enclosing Ethernet frame.
-
-![local routing](images/route-local.png)
-
-Note that in this case, the destination MAC address and the destination IP address point to the same device: PC2.
-
-An important detail is that the ARP table (the table which maps IP address to their corresponding MAC addresses) is not stored at the switch. A switch works at layer 2 (data link layer), which means it doesn't have the knowledge of IP addresses. Instead, the ARP tables are stored at the devices connecting to the switch. In our case, PC1, PC2 and the router.
-
-### Traffic to other networks
-
-So what if PC1 sends a packet to a different network? Here is an example of sending a packet from PC1 to a public IP address (say, `8.8.8.8`). This traffic matches the second rule in the route table. This rule is equipped with a gateway address, which is the address of the router, `192.168.1.1`. In this case, PC1 assembles the Ethernet frame by
-
-1. PC1 looks for the MAC address of the gateway (`192.168.1.1`) by the ARP protocol. Note that when a gateway is set, the host looks for the MAC address of the gateway, instead of the destination IP address. If it looked for the destination IP no one would answer because that IP is not even in the local network.
-2. The router answers PC1 with its MAC address, and PC1 sets it as the destination MAC address of the enclosing Ethernet frame.
-
-![public routing](images/route-public.png)
-
-Note that in this case, the destination MAC address and the destination IP address point to different devices. The MAC address points to the router, which inspects the enclosed IP packet upon receiving this frame. The router then finds that this packet is not destined to itself, and sends it out to the public network via `eth0`.
-
-Note that it illustrates the difference between a host and a router. A host (like PC1 and PC2) usually only receive and process packets destining itself, while a router typically handles packets destining other devices (there are also traffic destining a router, like when you manage the router's configuration via a web console). 
-
-Route table rules also have other fields like `scope` and `src`, you can take a look at [the manual](http://linux-ip.net/html/tools-ip-route.html).
-
-## Iptables
 
 Iptables provide 5 tables (filter, nat, mangle, security, raw), but the most commonly used are the _filter_ table and the _nat_ table. Tables are organized as _chains_, and there are totally 5 predefined chains, PREROUTING, POSTROUTING, INPUT, FORWARD and OUTPUT.
 
@@ -78,11 +21,13 @@ Below is the general diagram of the nat table in iptables.
 
 It helps to break the diagram down. For an incoming packet, it goes through the PREROUTING chain, then the kernel makes the routing decision based on the routing table. If the packet is destined for the machine itself, it's put into a local process listening on the machine. If it's destined for another machine (so this machine serves as a router), the kernel will put it through the POSTROUTING chain and then send it to an output interface.
 
-A packet generated from a local process will be routed and then put into the OUTPUT chain. The _reroute check_ step is a little bit complicated so we will explain it afterwards. The packet then goes to POSTROUTING and then goes to an output interface. For the discussion of the nat table, we assume that output packets never go to localhost.
+A packet generated from a local process will be routed and then put into the OUTPUT chain. The _reroute check_ step is a little bit complicated so we will explain it afterwards. The packet then goes to POSTROUTING and then goes to an output interface.
 
-### SNAT in iptables
+In this article, we will continue to use the home network setup.
 
-Below is the home network shown in the route tables section
+## SNAT in iptables
+
+Below is the example home network we will use for this article.
 
 ![home network](images/network.png)
 
@@ -106,9 +51,13 @@ iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE
 
 MASQUERADE can only be used in the POSTROUTING chain because the source IP address of the packet will be obtained from the network interface it gets routed to (in our case, `eth0`). 
 
+## Port forwarding
+
+Another use case of NAT is _port forwarding_. when we are running a service on one of our computers, say, PC1, and would like to access it from the Internet. Port forwarding is usually implemented using DNAT (D stands for _destination_) rules
+
 ### DNAT in iptables
 
-Another use case of NAT is _port forwarding_. when we are running a service on one of our computers, say, PC1, and would like to access it from the Internet. Suppose the service is opened on port 80 and we want to access it on port 8080 of the router, we will add the following DNAT (D stands for _destination_) rule.
+Suppose the service is opened on port 80 and we want to access it on port 8080 of the router, we will add the following DNAT rule.
 
 ```shell
 iptables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 -j DNAT --to-destination 192.168.1.2:80
@@ -120,7 +69,7 @@ The option `-p tcp` (`p` stands for _protocol_) matches for TCP connections (so 
 
 You might be wondering why iptables, a layer 3 (network layer) tool, could do modifications to port information, which is on layer 4 (transport layer). In fact, although iptables mainly work on layer 3, it has been extended to work on layer 4 as well, so working with ports is also possible for iptables. In our case, the option `-m tcp` (`m` stands for "match" an extension) loads an extension called `tcp` to work on ports, and the `--dport` option is provided by this extension. In fact, the option `-p tcp` implicitly loads the `tcp` extension so `-m tcp` is actually redundant.  [Here](https://manpages.ubuntu.com/manpages/xenial/man8/iptables-extensions.8.html) is the documentation for all standard extensions on Ubuntu. Also note that DNAT rules must be configured on the PREROUTING chain or OUTPUT chain because it's useless to modify the destination IP address after routing decision has been made.
 
-### Localhost access
+### Router access
 
 There is an issue with the setup above: A process running on the router cannot access the service on port 8080. Note that our command puts the DNAT rule into the PREROUTING chain, but packets generated by local process goes to the OUTPUT chain instead of PRERPOUTING. As a result, we have to also configure DNAT on the OUTPUT chain in order for a local process to access the service.
 
@@ -128,42 +77,53 @@ There is an issue with the setup above: A process running on the router cannot a
 iptables -t nat -A OUTPUT -p tcp --dport 8080 -j DNAT --to-destination 192.168.1.2:80
 ```
 
-Note that `-m tcp` is removed in the command above. It's also valid since the `tcp` extension is loaded automatically by `-p tcp`. However, the above DNAT rule does not really enable localhost access. Let me explain why.
+Note that `-m tcp` is removed in the command above. It's also valid since the `tcp` extension is loaded automatically by `-p tcp`. However, we can access the service only by the IP address 192.168.1.1:8080, and if we use 127.0.0.1:8080 or 50.60.70.80:8080 it will fail. Let me explain why.
 
-#### How OUTPUT chain works
+### How locally generated packets are processed
 
 A machine has more than one IP addresses. For example, the host PC1 has two: 127.0.0.1/8 for the loopback interface, and 192.168.1.2/24 for interface `eth0`. The router has three IP addresses because it has two physical interfaces and the loopback interface. The local process generating packets must specify the destination address, but usually the source address is not specified. Here is the question: How we determine the source IP address of a locally generated packet? Which IP address for which interface should we choose? The answer is: by looking at the route table. 
 
-For a packet generated by a local process, it goes to the routing process first. The kernel matches the destination address against the route table, selects an output interface and takes the IP address of the selected interface as its source address. For example, when PC1 sends a packet to localhost, the packet will be routed to the loopback interface and thus take the IP address 127.0.0.1. In contrast, if the packet is sent to the Internet, it will be routed to interface `eth0` and take the IP address 192.168.1.2. 
-The packet is then put into the OUTPUT chain after being routed. As a result, we have access to both source address and destination address of the packet in the OUTPUT chain. 
+For a packet generated by a local process, it goes to the routing process first. The kernel matches the destination address against the route table, selects an output interface and takes the IP address of the selected interface as its source address. For example, when PC1 sends a packet to 127.0.0.1 (or localhost), the packet will be routed to the loopback interface and thus take the IP address 127.0.0.1. In contrast, if the packet is sent to the Internet, it will be routed to interface `eth0` and take the IP address 192.168.1.2. The packet is then put into the OUTPUT chain after being routed. As a result, we have access to both source address and destination address of the packet in the OUTPUT chain. 
 
 However, as is shown above, we might do NAT in the output chain which might change the destination address. In this case, we need to re-select an output interface by doing another routing process, and this is what the "reroute check" step does.
 
 ![reroute check](images/reroute-check.png)
 
-The problem of the reroute check step is that it does not touch the source address, which brings us the problem with local access. Suppose we send a packet to 127.0.0.1:8080, the steps it will go through are:
+The caveat here is that reroute check does not touch the source address, which brings us the problem with local access. Suppose we send a packet to 127.0.0.1:8080, the steps it will go through are:
 
 1. Its destination address is 127.0.0.1, so it's routed to the loopback interface, and its source IP address is set to 127.0.0.1.
 2. The DNAT rule in the OUTPUT chain gets applied, and modifies its destination IP address to 192.168.1.2.
 3. The packet is rerouted to the `eth1` interface by reroute-check, and then sent to PC1, but PC1 does not know where to reply: its source IP is 127.0.0.1!
 
-### Enable localhost access
+This also explains why 192.168.1.1:8080 works: The source IP address happens to be correct in this case!
 
-It turns out that we must add another SNAT rule to translate the source address of the packet. The option `src-type` is provided by extension `addrtype`, which matches against localhost addresses, so all addresses in 127.0.0.1/8 gets translated instead of just 127.0.0.1.
+At most cases the request packet will just be dropped by the router before even sending it out, since 127.0.0.1 is not a valid source address for interface `eth1`. The same goes for the case where we access 50.60.70.80:8080 from the router: The packet gets dropped before being sent out since 50.60.70.80 is invalid for `eth1`.
+
+### MASQUERADE rule for router access
+
+It turns out that we must add another SNAT rule to correct the source address of the packet. 
 
 ```shell
 iptables -t nat -A POSTROUTING -m addrtype --src-type LOCAL -o eth1 -j MASQUERADE
 ```
 
-This SNAT rule applies after the reroute-check step. In this way, the packet sent to PC1 will have the source address 192.168.1.1 so PC1 knows where to send the response.
+The option `src-type` is provided by extension `addrtype`, which matches against all IP addresses on the machine, including:
 
-However, the SNAT rule above is not enough. It turns out that the reroute check step might deny this packet because it has a localhost source address. The router thinks that the destination machine at the other end of `eth1` does not know how to reply to a localhost address, so it rejects this packet as invalid, without knowing that the address will be corrected afterwards in the POSTROUTING chain. For this packet to pass reroute-check, we need to turn on the Linux kernel parameter `net.ipv4.conf.eth1.route_localnet` by doing
+- all addresses in 127.0.0.0/8
+- 192.168.1.1 since it's the address on `eth1`
+- 50.60.70.80 since it's the address on `eth0`
+
+This SNAT rule applies after the reroute-check step. In this way, the packet sent to PC1 will always have the source address 192.168.1.1 so PC1 knows where to send the response. At this time, access the service via 50.60.70.80:8080 will succeed.
+
+### Kernel option for routing localhost addresses
+
+However, the SNAT rule above is not enough. In fact, accessing the service through 127.0.0.1:8080 will fail. It turns out that the reroute check step will deny packets with a localhost source address, for security reason. For packets to pass reroute-check, we need to turn on the Linux kernel parameter `net.ipv4.conf.eth1.route_localnet` by doing
 
 ```shell
-sysctl -w net.ipv4.conf.bridge0.route_localnet=1
+sysctl -w net.ipv4.conf.eth1.route_localnet=1
 ```
 
-The command above only set the parameter temporarily. To set kernel parameters permanently, see [Hosts as routers](/p/network-namespaces/#hosts-as-routers)
+The command above only set the parameter temporarily. To set kernel parameters permanently, see [Hosts as routers](p/network-namespaces-and-docker/#hosts-as-routers)
 
 ### Load balancing
 
@@ -185,9 +145,11 @@ iptables -t nat -A OUTPUT -p tcp --dport 8080 -j DNAT --to-destination 192.168.1
 
 ### Hairpin NAT
 
-Let's go back to the scenario that the service is running only on PC1. What happens when, say, PC2 accesses 50.60.70.80:8080 and gets redirected to PC1? The process is illustrated in the diagram below. Red line stands for request packets and green line stands for response packets.
+Let's go back to the scenario that the service is running only on PC1. What happens when, say, PC2 accesses 50.60.70.80:8080 and gets redirected to PC1? The process is illustrated in the diagram below. Red line stands for request packets and green line stands for response packets. Here in the example we are accessing 50.60.70.80:8080, but we can also access 192.168.1.1:8080. The results are similar.
 
 ![hairpin not working](images/hairpin-notworking.png)
+
+First note that in this scenario the packet received by the router arrives at the `eth1` interface, while public network packets arrives at the `eth0` interface. That is why we do not specify any input interface in [DNAT in iptables](#dnat-in-iptables). It provides a chance for all machines, including local machines and machines on the public network to access the service via its 8080 port.
 
 The destination address of the request packet gets translated to 192.168.1.2:80, which is the IP address and port for the service running on PC1. The request packet arrives at PC1 successfully. The response packet will not go to the router, since the source address of the request packet is 192.168.1.3 and it's in the local network. As a result, the response packet arrives at PC2 through the switch, without going to the router.
 

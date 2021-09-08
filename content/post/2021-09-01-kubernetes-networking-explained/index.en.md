@@ -15,7 +15,8 @@ This is a series of blog posts explaining how Kubernetes networking behaves.
 
 ## Posts
 
-- [Route tables and Iptables for Routing](/p/route-tables-and-iptables-for-routing/)
+- [Route Tables Explained](/p/route-tables-explained/)
+- [Iptables for Routing](/p/iptables-for-routing/)
 - [Network Namespaces](/p/network-namespaces/)
 - [Pods Networking](/p/pods-networking/)
 
@@ -25,7 +26,9 @@ This is a series of blog posts explaining how Kubernetes networking behaves.
 
 The Pluralsight course [Configuring and Managing Kubernetes Networking, Services, and Ingress](https://app.pluralsight.com/library/courses/configuring-managing-kubernetes-networking-services-ingress/table-of-contents) is a good introduction to Kubernetes networking.
 
-The video [技术分享：Kubernetes Networking Model （赵锟）](https://youtu.be/HxS4s11rmyA) is a good overview.
+The following videos are great overview 
+- [技术分享：Kubernetes Networking Model （赵锟）](https://youtu.be/HxS4s11rmyA)
+- [Tutorial: Communication Is Key - Understanding Kubernetes Networking - Jeff Poole, Vivint Smart Home](https://youtu.be/InZVNuKY5GY)
 
 ### Networking basics
 
@@ -39,6 +42,8 @@ The video series below explains iptables and other networking related topics in 
 ### Pods networking
 
 [Kubernetes: Flannel networking](https://blog.laputa.io/kubernetes-flannel-networking-6a1cb1f8ec7c)
+
+[Calico Routing Modes](https://youtu.be/MpbIZ1SmEkU)
 
 ### Services networking
 

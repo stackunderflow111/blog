@@ -1,14 +1,13 @@
 ---
-title: Network Namespaces
+title: Network Namespaces and Docker
 author: Stack Underflow
 date: '2021-09-03'
-slug: network-namespaces
 categories:
   - Tech
 tags:
   - Linux
   - networking
-description: the second post in series Kubernetes Networking Explained
+description: the third post in series Kubernetes Networking Explained
 ---
 
 ## Recommended Resources
@@ -105,7 +104,7 @@ You might be wondering why a bridge is added by `ip link` command, which is norm
 
 ![physical setup](images/setup-physical.png)
 
-The name `bridge0` appears twice: It's not only the name of the bridge connecting `red`, `blue` and the host machine together, but also the name of the interface the is connect to the bridge on the host machine. In other words, it's a bridge from the perspective of the network namespaces, but it's an interface from the perspective of the host machine. When we add an IP address to `bridge0` using `ip addr add 192.168.15.1/24 dev bridge0`, we are actually adding an IP address to the interface. It's crucial to understand the "double role" of a virtual bridge.
+The name `bridge0` appears twice: It's not only the name of the bridge connecting `red`, `blue` and the host machine together, but also the name of the interface the is connect to the bridge on the host machine. In other words, it's a bridge from the perspective of the network namespaces, but it's an interface from the perspective of the host machine. When we add an IP address to `bridge0` using `ip addr add 192.168.15.1/24 dev bridge0`, we are actually adding an IP address to the interface. It's crucial to understand the "double roles" of a virtual bridge.
 
 ## Access the Internet from a network namespace
 
@@ -115,7 +114,7 @@ To access the Internet from `red`, first we add a default routing rule which sen
 ip -n red route add default via 192.168.15.1 dev veth-red
 ```
 
-We should also setup NAT in the host machine. According to [SNAT in iptables](/p/route-tables-and-iptables-for-routing/#snat-in-iptables), the rule should look like the following (`!` stands for negation).
+We should also setup NAT in the host machine. According to [SNAT in iptables](/p/iptables-for-routing/#snat-in-iptables), the rule should look like the following (`!` stands for negation).
 
 ```shell
 iptables -t nat -A POSTROUTING -s 192.168.15.0/24 ! -o bridge0 -j MASQUERADE
@@ -162,34 +161,47 @@ net.ipv4.ip_forward=1
 Let's run a web server in `red` on port 80
 
 ```
-ip exec red python2 http.server 80
+ip exec red python3 -m http.server 80
 ```
 
 how to access it from port 8080 on the host?
 
-We need the following DNAT rule for port 8080 to be accessible from a different machine, according to [DNAT in iptables](/p/route-tables-and-iptables-for-routing/#dnat-in-iptables).
+We need the following DNAT rule for port 8080 to be accessible from a different machine, according to [DNAT in iptables](/p/iptables-for-routing/#dnat-in-iptables).
 
 ```shell
 iptables -t nat -A PREROUTING -p tcp --dport 8080 -j DNAT --to-destination 192.168.15.2:80
 ```
 
-### Localhost access
+### Host access
 
-To be able to access the container locally, we need the following according to [Localhost access](/p/route-tables-and-iptables-for-routing/#localhost-access):
+To be able to access the published port locally from the host, we need the following according to [Router access](/p/iptables-for-routing/#router-access):
 
 ```shell
 iptables -t nat -A OUTPUT -p tcp --dport 8080 -j DNAT --to-destination 192.168.15.2:80
+
+```
+
+run `curl 192.168.15.1:8080` to confirm that it works. However, it doesn't work if we want to access the service using other IP addresses on the host, such as 127.0.0.1. To do so, add the following rule according to [MASQUERADE rule for local access](/p/iptables-for-routing/#masquerade-rule-for-router-access).
+
+```shell
 iptables -t nat -A POSTROUTING -m addrtype --src-type LOCAL -o bridge0 -j MASQUERADE
+```
+
+Now access the published port by `curl 10.0.2.15:8080` (suppose this is the address of `eth0` interface on the host) and make sure it works.
+
+However, `curl 127.0.0.1:8080` still doesn't work. set `route_localnet=1` according to [Kernel option for routing localhost addresses](/p/iptables-for-routing/#kernel-option-for-routing-localhost-addresses).
+
+```shell
 sysctl -w net.ipv4.conf.bridge0.route_localnet=1
 ```
 
-run `curl localhost:8080` to confirm that it works.
+This time, verify that `curl 127.0.0.1:8080` succeeds.
 
 ### Access from `blue` namespace
 
 Try running `ip netns exec blue curl 192.168.15.1:8080` and we get no response. Why?
 
-The answer is simple: According to [Hairpin NAT](/p/route-tables-and-iptables-for-routing/#hairpin-nat), what happens are:
+The answer is simple: According to [Hairpin NAT](/p/iptables-for-routing/#hairpin-nat), what happens are:
 
 1. `blue` sends a request packet to 192.168.15.1:8080, whose source address is 192.168.15.3
 2. The destination address gets translated to 192.168.15.2:80, and the packet gets sent to `red`
@@ -202,13 +214,13 @@ How to solve the problem? It turns out that we do not to turn on hairpin NAT for
 sysctl -w net.bridge.bridge-nf-call-iptables=1
 ```
 
-If the command above fails, your system might not have the kernel module `br_nrtfilter` loaded. Load the module and retry.
+If the command above fails, your system might not have the kernel module `br_netfilter` loaded. Load the module and retry.
 
 ```shell
 modprobe br_netfilter
 ```
 
-In this way, the reply packet will also go through the reverse operation of DNAT, and its source address will be corrected to match the destination of the request.
+When this parameter is set, iptables rules will be applied to packets going through virtual bridges. In this way, the reply packet will also go through the reverse operation of DNAT, and its source address will be corrected to match the destination of the request.
 
 ![bridge NAT](images/bridge-nat.png)
 
@@ -256,5 +268,5 @@ docker run --rm -it -p 8080:80 nginx
 
 you can try everything we explained above, including kernel parameters, route tables and iptables rules.
 
-What is the `userland-proxy` option? It's an alternative way to publish ports. when its value is `true`, Docker will start a proxy listening on published ports and redirect the traffic to the desired container. For example, for the `nginx` container above, it will listen on 0.0.0.0:8080 and redirect the traffic to 192.168.15.2:80. Setting `userland-proxy` to `false` triggers some bugs and compatibility issues in older kernels so Docker keep the default option to be `true`. You can see the discussion in [this issue](https://github.com/moby/moby/issues/14856). The iptables rules are slightly different than what we described above since we are describing an iptables-only approach.
+What is the `userland-proxy` option? It's an alternative way to publish ports. when its value is `true`, Docker will start a proxy listening on published ports and redirect the traffic to the desired container. For example, for the `nginx` container above, it will listen on 0.0.0.0:8080 and redirect the traffic to 172.17.0.2:80 (Docker uses the IP address range 172.17.0.0/24 by default). Setting `userland-proxy` to `false` triggers some bugs and compatibility issues in older kernels so Docker keeps the default option to be `true`. You can see the discussion in [this issue](https://github.com/moby/moby/issues/14856). When the value is `true`, the iptables rules are slightly different than what we shown above since we are describing an iptables-only approach.
 

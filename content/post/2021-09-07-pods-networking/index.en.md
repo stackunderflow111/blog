@@ -1,14 +1,14 @@
 ---
-title: 'Pods Networking'
+title: Pods Networking
 author: Stack Underflow
-date: '2021-08-28'
-slug: pods-networking
-categories: 
+date: '2021-09-07'
+categories:
   - Tech
-tags: 
+tags:
   - kubernetes
   - networking
-description: the third post in series Kubernetes Networking Explained
+slug: pods-networking
+description: the fourth post in series Kubernetes Networking Explained
 ---
 
 ## Pods and their IP addresses
