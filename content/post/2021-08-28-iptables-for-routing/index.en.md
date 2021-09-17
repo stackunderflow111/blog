@@ -79,7 +79,7 @@ iptables -t nat -A OUTPUT -p tcp --dport 8080 -j DNAT --to-destination 192.168.1
 
 Note that `-m tcp` is removed in the command above. It's also valid since the `tcp` extension is loaded automatically by `-p tcp`. However, we can access the service only by the IP address 192.168.1.1:8080, and if we use 127.0.0.1:8080 or 50.60.70.80:8080 it will fail. Let me explain why.
 
-### How locally generated packets are processed
+#### How locally generated packets are processed
 
 A machine has more than one IP addresses. For example, the host PC1 has two: 127.0.0.1/8 for the loopback interface, and 192.168.1.2/24 for interface `eth0`. The router has three IP addresses because it has two physical interfaces and the loopback interface. The local process generating packets must specify the destination address, but usually the source address is not specified. Here is the question: How we determine the source IP address of a locally generated packet? Which IP address for which interface should we choose? The answer is: by looking at the route table. 
 
@@ -99,7 +99,7 @@ This also explains why 192.168.1.1:8080 works: The source IP address happens to 
 
 At most cases the request packet will just be dropped by the router before even sending it out, since 127.0.0.1 is not a valid source address for interface `eth1`. The same goes for the case where we access 50.60.70.80:8080 from the router: The packet gets dropped before being sent out since 50.60.70.80 is invalid for `eth1`.
 
-### MASQUERADE rule for router access
+#### MASQUERADE rule for router access
 
 It turns out that we must add another SNAT rule to correct the source address of the packet. 
 
@@ -115,7 +115,7 @@ The option `src-type` is provided by extension `addrtype`, which matches against
 
 This SNAT rule applies after the reroute-check step. In this way, the packet sent to PC1 will always have the source address 192.168.1.1 so PC1 knows where to send the response. At this time, access the service via 50.60.70.80:8080 will succeed.
 
-### Kernel option for routing localhost addresses
+#### Kernel option for routing localhost addresses
 
 However, the SNAT rule above is not enough. In fact, accessing the service through 127.0.0.1:8080 will fail. It turns out that the reroute check step will deny packets with a localhost source address, for security reason. For packets to pass reroute-check, we need to turn on the Linux kernel parameter `net.ipv4.conf.eth1.route_localnet` by doing
 

@@ -8,6 +8,7 @@ categories:
 tags: 
   - kubernetes
   - networking
+  - linux
 description: a blog post series
 ---
 
@@ -19,6 +20,8 @@ This is a series of blog posts explaining how Kubernetes networking behaves.
 - [Iptables for Routing](/p/iptables-for-routing/)
 - [Network Namespaces](/p/network-namespaces/)
 - [Pods Networking](/p/pods-networking/)
+- Services Networking (todo)
+- DNS (todo)
 
 ## Resources
 
@@ -37,7 +40,9 @@ The video series below explains iptables and other networking related topics in 
 - [金枪鱼之夜：坏人的 iptables 小讲堂](https://youtu.be/w_vGD-96O54)
 - [金枪鱼之夜：坏人的 iptables 小讲堂第二弹](https://youtu.be/Vnh8hYk6wZE) 
 
-[Network Namespaces Basics Explained in 15 Minutes](https://youtu.be/j_UUnlVC2Ss) is a great introductory video on network namespaces. However there are several errors in this video so pay attention.
+### Network namespaces
+
+[Network Namespaces Basics Explained in 15 Minutes](https://youtu.be/j_UUnlVC2Ss) is a great introductory video on network namespaces. However there are several mistakes in this video so pay attention.
 
 ### Pods networking
 

@@ -178,7 +178,6 @@ To be able to access the published port locally from the host, we need the follo
 
 ```shell
 iptables -t nat -A OUTPUT -p tcp --dport 8080 -j DNAT --to-destination 192.168.15.2:80
-
 ```
 
 run `curl 192.168.15.1:8080` to confirm that it works. However, it doesn't work if we want to access the service using other IP addresses on the host, such as 127.0.0.1. To do so, add the following rule according to [MASQUERADE rule for local access](/p/iptables-for-routing/#masquerade-rule-for-router-access).
@@ -208,7 +207,7 @@ The answer is simple: According to [Hairpin NAT](/p/iptables-for-routing/#hairpi
 3. `red` replies to `blue`, but the source address of the reply packet is 192.168.15.2. The reply packet goes to `blue` directly through `bridge0` without being NATed
 4. `blue` gets the reply packet, but will not put the request and the response into the same connection since the source address of the response does not match the destination address of the request
 
-How to solve the problem? It turns out that we do not to turn on hairpin NAT for virtual bridges. What we need is to set a kernel parameter to 1.
+How to solve the problem? It turns out that we do not need to turn on hairpin NAT for virtual bridges. What we need is to set a kernel parameter to 1.
 
 ```shell
 sysctl -w net.bridge.bridge-nf-call-iptables=1
@@ -266,7 +265,11 @@ Finally, run a container to experiment using
 docker run --rm -it -p 8080:80 nginx
 ```
 
-you can try everything we explained above, including kernel parameters, route tables and iptables rules.
+you can try everything we explained above, including kernel parameters, route tables and iptables rules. For example, we can inspect the iptables rules using 
+
+```shell
+iptables -vL -t nat
+```
 
 What is the `userland-proxy` option? It's an alternative way to publish ports. when its value is `true`, Docker will start a proxy listening on published ports and redirect the traffic to the desired container. For example, for the `nginx` container above, it will listen on 0.0.0.0:8080 and redirect the traffic to 172.17.0.2:80 (Docker uses the IP address range 172.17.0.0/24 by default). Setting `userland-proxy` to `false` triggers some bugs and compatibility issues in older kernels so Docker keeps the default option to be `true`. You can see the discussion in [this issue](https://github.com/moby/moby/issues/14856). When the value is `true`, the iptables rules are slightly different than what we shown above since we are describing an iptables-only approach.
 
