@@ -211,7 +211,7 @@ In fact, we are running into a similar situation as [the caveat in Java](#a-cave
 
 ### Contravariant position
 
-Let's think about how to make the method `prepend` type safe.
+Let's think about how to make the method `prepend` type safe. One approach is to make `List` an invariant class, just like what we do for `Array`. However, we have a better approach.
 
 Let's assume we define the type of `v` in the `prepend` method to be a type derived from `A`, called `F[A]`, where `F` is called a *type constructor* that derives a type from another type. `List[A]` is an example of a type constructor. When `F` is the identity type constructor, `F[A] = A` so our naive definition is actually a special case. In this way, the signature of `prepend` looks like:
 
@@ -233,7 +233,7 @@ Method parameters are something that are in contravariant positions. With this d
 
 ### The solution
 
-How to design the type constructor `F`? One approach is to make `List` an invariant class, just like what we do for `Array`. However, we have a better approach.
+How to design the type constructor `F`? Here is a common approach.
 
 ```scala
 sealed trait List[+A] {
@@ -264,7 +264,7 @@ Similar to contravariant position, we have something called *covariant position*
 
 We introduced the fact that method parameters are in contravariant position using an example of covariant generic class, but actually it holds for all generic classes. Suppose we have a generic class `P` with a type parameter `T`, and `P[A] < P[B]`. Suppose `P[T].m(value: G[T])` is a method which takes a parameter of type `G[T]`. For type safety, `P[A].m(value: G[A])` should accept any arguments given to `P[B].m(value: G[B])`, which means the set corresponding to `G[B]` is a subset of the set corresponding to `G[A]`, or, in other words `G[B] < G[A]`. since `P[A]` is defined to be a subtype of `P[B]`, we can find that `value`, a method parameter, is in contravariant position. Notice that we do not specify the variance of `P` w.r.t. `T`. 
 
-We already know that functions are contravariant w.r.t. their parameters, and now we also know that method parameters are in contravariant position. What is the relation between the two "contravariance"? It turns out that by ensuring contravariant position for `value`, we have `G[B] < G[A]`, making `P[A].m` become a subtype of `P[B].m` (because functions are contravariant w.r.t. their parameters), which ensures that `P[A].m` is always suitable what `P[B].m` is required, a.k.a. the "type safety" for `P[A]` and `P[B]`. Below is a illustration of the relations. By the same reason, the return value of a method is in the covariant position since functions are covariant w.r.t. their return value.
+We already know that functions are contravariant w.r.t. their parameters, and now we also know that method parameters are in contravariant position. What is the relation between the two "contravariance"? It turns out that by ensuring contravariant position for `value`, we have `G[B] < G[A]`, making `P[A].m` become a subtype of `P[B].m` (because functions are contravariant w.r.t. their parameters), which ensures that `P[A].m` is always suitable when `P[B].m` is required, a.k.a. the "type safety" for `P[A]` and `P[B]`. Below is a illustration of the relations. By the same reason, the return value of a method is in the covariant position since functions are covariant w.r.t. their return value.
 
 ![contravariant position](images/contravaraiant_position.png)
 
