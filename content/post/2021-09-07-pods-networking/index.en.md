@@ -37,8 +37,6 @@ What does it mean? For example, pod 1 with IP address 192.168.1.10 sends a packe
 
 ![natless](images/natless.png)
 
-Actually, the third requirement only applies to platforms that support pods running in the host network (e.g. Linux). This article only discusses Linux platform.
-
 In the sections below, let's discuss how the NAT-less communication is implemented. Basically, we will discuss four implementations:
 
 - switched network
@@ -69,28 +67,21 @@ The route table for pods on node2 is similar, we just replace the local network 
 
 ### Cross-nodes pods communication
 
-The nodes are connected using the two route table rules
-
-```shell
-default via 172.16.94.1 dev eth0
-172.16.94.0/24 dev eth0
-```
-
 If `frontend-1` communicates with `backend-2`, it goes through the outgoing rule 
 
 ```shell
 192.168.2.0/24 via 172.16.94.12 dev eth0
 ```
 
-which sends the traffic to node2. The incoming rule on node2 sends the traffic to `bridge0`
+which sends the traffic to `backend-2` with node2 as the gateway. The incoming rule on node2 then sends the traffic to `bridge0`
 
 ```shell
 192.168.2.0/24 dev bridge0
 ```
 
-In this way, the two pods communicate with each other without using NAT. The rule `192.168.2.0/24 via 172.16.94.12 dev eth0` only enables communication between pods on node1 and node2. If another node, say, node3 is added, which serves pods 192.168.3.0/24 with IP address 172.16.94.13, we need another rule `192.168.3.0/24 via 172.16.94.13 dev eth0`. Generally, for a cluster with `n` nodes, each node has `n-1` outgoing rules for all of its neighbors.
+In this way, the two pods communicate with each other without using NAT. Note that the rule `192.168.2.0/24 via 172.16.94.12 dev eth0` only enables communication between pods on node1 and node2. If another node, say, node3 is added, which serves pods 192.168.3.0/24 with IP address 172.16.94.13, we need another rule `192.168.3.0/24 via 172.16.94.13 dev eth0`. Generally, for a cluster with `n` nodes, each node has `n-1` outgoing rules for all of its neighbors.
 
-NAT-less communication between pods doesn't mean we do not do NAT at all. NAT does occur when a pod access something outside of the pods network, for example, the Internet. We can configure the MASQUERADE rule like the following:
+NAT-less communication between pods doesn't mean we do not do NAT at all. NAT does occur when a pod access something outside of the pods network, for example, the Internet. We can configure the MASQUERADE rule like the following, which excludes pods network addresses from being NATed:
 
 ```shell
 iptables -t nat -A POSTROUTING ! -d 192.168.0.0/16 -j MASQUERADE
@@ -98,11 +89,11 @@ iptables -t nat -A POSTROUTING ! -d 192.168.0.0/16 -j MASQUERADE
 
 ## Kubenet
 
-The switched network configuration only works fine for small clusters, small enough that all the machines can be switched together. What should we do for larger clusters? One possible optimization you might be thinking is moving all the routing rules like `192.168.2.0/24 via 172.16.94.12 dev eth0` to the router `172.16.94.1` for centralized management. In fact, this is what kubenet does.
+The switched network configuration only works fine for small clusters, small enough that all the machines can be switched together. What should we do for larger clusters? One possible optimization you might be thinking is moving all the cross-nodes pods routing rules like `192.168.2.0/24 via 172.16.94.12 dev eth0` to the router `172.16.94.1` for centralized management. In fact, this is what kubenet does. We generally only use kubenet in cloud environments, so the diagram looks different. Instead of using real switches and routers, all the machines are virtual machines running in a VPC subnet. The route table is provided by the cloud provider's networking infrastructure. 
 
 ![kubenet](images/kubenet.png)
 
-From the diagram above, we see that the outgoing rules have been removed from each node. Instead, a centralized routing table is added to the nodes subnet to enable cross-nodes pods address routing. 
+From the diagram above, we see that the cross-nodes pods rules have been removed from each node. Instead, a centralized routing table is added to the nodes subnet to enable cross-nodes pods address routing. 
 
 ```shell
 192.168.2.0/24 -> 172.16.94.12
@@ -111,9 +102,7 @@ From the diagram above, we see that the outgoing rules have been removed from ea
 
 In this way, any traffic from `frontend-1` to `backend-2` goes through the default routing rule on node1, and then gets routed to node2 by the external route table. 
 
-The route tables is provided by the cloud provider's networking infrastructure. That is why we generally only use kubenet in cloud environments.
-
-Similar to the switched network configuration, NAT is required to access something outside of the nodes subnet, like a database node at 172.16.150.120. Generally, only pods and node-to-pods communication are NAT-less in all Kubernetes cluster configurations.
+Similar to the switched network configuration, NAT is required to access something outside of the nodes subnet, like a database node at 172.16.150.120.
 
 If you want to do experiment with kubenet you could create a Kubernetes cluster on Azure, which provides kubenet networking mode.
 
@@ -125,7 +114,7 @@ One possible solution is flannel. It works like the diagram below.
 
 ![flannel](images/flannel.png)
 
-Here I omitted the host network routing rules since they are no longer important. `flannel0` is a TUN device created by `flanneld`. It look like an interface for the host, just like `bridge0` and `eth0`. But it has some special behaviors:
+Here I omitted the host network routing rules since they are no longer important. `flannel0` is a TUN device created by `flanneld`. It looks like an interface for the host, just like `bridge0` and `eth0`, but has some special behaviors:
 
 - If the route table routes a packet to `flannel0`, the packet will be handed to `flanneld`
 - If `flanneld` writes a packet to `flannel0`, the host treats it like an incoming packet from `flannel0`, just like an incoming packet from other interfaces like `eth0`.
@@ -136,7 +125,7 @@ flannel packs every IP packets in an UDP datagram and sends them to the destinat
 2. `flannel0` hands the packet over to `flanneld`, which packs the packet in an UDP datagram. The destination port is set to 8285, while the source and destination IP addresses are set to the addresses of node1 and node2. flannel stores a mapping from pod network ranges to node IP addresses in etcd, so it's able to determine that 192.168.2.10 runs on 172.16.94.12 (node2) by looking up this mapping.
 3. the UDP datagram is transmitted to node2. Note that this transmission does not depend on any underlying network architecture as long as node2 is reachable from node1 because the UDP datagram is addressed using the node address. They could be switched together, or they could be very far away and the traffic has to go through several routers along the way. They could even be virtual machines running on the cloud and thus the networking architecture is a blackbox to us. That is why we omit the host network routing rules in the diagram above.
 4. the UDP datagram reaches node2 at port 8285. The `flanneld` process also listens on port 8285 so it gets the datagram.
-5. `flanneld` unpacks the UDP datagram and writes it to `flannel0`. The inner IP packet destining 192.168.2.10 gets revealed and routed to `bridge0` by the rule `192.168.2.0/24 dev flannel0`. Note that it will not match the `flannel0` rule because of longest prefix matching.
+5. `flanneld` unpacks the UDP datagram and the inner IP packet destining 192.168.2.10 gets revealed. `flanneld` then writes the inner packet to `flannel0`, which is then routed to `bridge0` by the rule `192.168.2.0/24 dev bridge0`. Note that it will not match the `flannel0` rule because of longest prefix matching.
 6. `bridge0` send the packet to `backend2` whose address matches the destination address of the packet, 192.168.2.10.
 
 The diagram below shows how the packet gets packed and unpacked.
@@ -159,7 +148,7 @@ The bridge plays an important role in the network configurations. It provides tw
 - communication between pods running on the same node goes through the bridge
 - for incoming packets destining a pod, the host routes it to the bridge and the bridge automatically dispatch the packet to the destination pod.
 
-However, Linux bridge has some performance penalty. The only way to get rid of such performance impact is stop using bridges. Calico provides an alternative solution to bridge.
+However, Linux bridge has some performance penalty. The only way to get rid of such performance impact is to stop using bridges. Calico provides an alternative solution to bridge.
 
 ### Alternative to bridge
 
@@ -179,17 +168,19 @@ net.ipv4.conf.cali1001.proxy_arp = 1
 net.ipv4.conf.cali1002.proxy_arp = 1
 ```
 
-With the `proxy_arp` option, the host will answer ARP requests from the pods. For example, say `frontend-1` sends a packet to `backend-1`. The destination IP address of the packet is `192.168.1.11` so it matches the `default` rule. As a result, `frontend-1` first asks the MAC address of 169.254.1.1 since it's the default gateway. The host will answer "Oh, I am 169.254.1.1, send the packet to me!" because it has `proxy_arp` set for the interface `cali1001`, even though it doesn't know where is 169.254.1.1. As a result, `frontend-1` sends the packet to the host. The host then routes the packet to `backend-2` according to the routing rule `192.168.1.11 dev cali1002`. 
+With the `proxy_arp` option, the host will answer ARP requests from the pods. For example, say `frontend-1` wants to send a packet to `backend-1`. The destination IP address of the packet is `192.168.1.11` so it matches the `default` rule. As a result, `frontend-1` first asks the MAC address of 169.254.1.1 since it's the default gateway. The host will answer "Oh, I am 169.254.1.1, send the packet to me!" because it has `proxy_arp` set for the interface `cali1001`, even though it doesn't know where 169.254.1.1 is. As a result, `frontend-1` sends the packet to the host. The host then routes the packet to `backend-2` according to the routing rule `192.168.1.11 dev cali1002`. 
 
 For incoming packets, the `cali*` rules send them to the destination pods directly, without going through any bridge. What is important is the `blackhole` rule, which drops all the packets destining a non-existing pod. Without the blackhole rule the packets will be sent back to the outside of the host because they match the `default` rule.
 
-This is how calico replaces the bridge. The bridge's functionality is implemented by a magical IP address, the `proxy_arp` configuration and the `192.168.1.* dev cali*` routing rules in the host network. There will be `m` `cali*` interfaces and their `m` corresponding routing rules if there are `m` pods running on a node, plus a blackhole rule. By removing the bridge out, the override related to Linux bridge is eliminated so we get better performance.
+This is how calico replaces the bridge. The bridge's functionality is implemented by a magical IP address, the `proxy_arp` configuration and the `192.168.1.* dev cali*` routing rules in the host network. There will be `m` `cali*` interfaces and their `m` corresponding routing rules if there are `m` pods running on a node, plus a blackhole rule. By removing the bridge out, the override related to Linux bridge is eliminated so we get better performance. Calico also makes use of those `cali*` interfaces to implement network policies, like "a pod running a frontend server cannot access a pod running a database". 
 
 ### Cross-nodes pods networking
 
 The `tunl0` interface is a tunnel device. If you send a packet to `tunl0` with the gateway address set as the IP address of the destination node, the packet will be tunneled to the destination. For example, if `frontend-1` sends a packet to `backend-2`, the packet will be routed to `tunl0` by the routing rule `192.168.2.0/24 via 172.16.94.12 dev tunl0 onlink`. `tunl0` then sends the packet to 172.16.94.12, the gateway address of the packet. On node2, the rule `192.168.2.10 dev cali2001` routes the packet to `backend-2`. Just like the switched network configuration, for a cluster with `n` nodes, each node has `n-1` outgoing rules for all of its neighbors.
 
 The parameter `onlink` is important. Basically, when there is no `onlink`, the gateway has to be in the same network as the host, which means node1 and node2 have to be switched together. When `onlink` is set, the host will pretend that the gateway is in the same network, even though they might be several routers away. You can see a [discussion](https://lartc.vger.kernel.narkive.com/XgcjFTGM/aw-onlink-option-for-ip-route) here.
+
+Calico differs from Flannel in how it encapsulates the packets. Instead of UDP encapsulation, Calico uses IPIP encapsulation, which means the inner IP packets from pods to pods are packed inside outer IP packets from nodes to nodes. By removing UDP, Calico achieves lower overhead and higher performance.
 
 ## Conclusion
 
@@ -199,7 +190,7 @@ The table summarizes the pros and cons of different networking configurations.
 | ----------- | ----------- | ------|
 | switched network  | simple | only for small clusters   |
 | kubenet   | simple  | only for small or medium clusters running on cloud providers  |
-| flannel   | simple, works for large clusters and on-premise clusters  | performance not good enough  |
-| calico   | works for large clusters and on-premise clusters, good performance  | not so simple |
+| flannel   | simple  | performance not good enough  |
+| calico   | good performance and sophisticated network policies | not so simple |
 
 What we should remember is that whichever configuration we choose, the goal is the same: Pods should communicate with each other without NAT.

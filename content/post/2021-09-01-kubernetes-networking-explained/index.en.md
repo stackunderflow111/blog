@@ -18,7 +18,7 @@ This is a series of blog posts explaining how Kubernetes networking behaves.
 
 - [Route Tables Explained](/p/route-tables-explained/)
 - [Iptables for Routing](/p/iptables-for-routing/)
-- [Network Namespaces](/p/network-namespaces/)
+- [Network Namespaces and Docker](/p/network-namespaces-and-docker/)
 - [Pods Networking](/p/pods-networking/)
 - Services Networking (todo)
 - DNS (todo)
