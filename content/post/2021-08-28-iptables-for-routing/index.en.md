@@ -27,7 +27,7 @@ In this article, we will continue to use the home network setup below.
 
 ![home network](images/network.png)
 
-You might find it's hard to experiment with what I described in this article since your route might not have `iptables`. Don't worry, in the article [Network Namespaces and Docker](/p/network-namespaces-and-docker/) you will learn how to simulate this setup on your Linux machine.
+You might find it's hard to experiment with what I described in this article since your route might not have `iptables`. Actually, you need more advanced router firmwares to use `iptables`, like OpenWrt or ASUS-Merlin. Don't worry, in the article [Network Namespaces and Docker](/p/network-namespaces-and-docker/) you will learn how to simulate this setup on your Linux machine.
 
 ## SNAT in iptables
 
@@ -97,7 +97,7 @@ The caveat here is that reroute check does not touch the source address, which b
 
 This also explains why 192.168.1.1:8080 works: The source IP address happens to be correct in this case!
 
-At most cases the request packet will just be dropped by output interface of the router before even sending it out, since 127.0.0.1 is not a valid source address for interface `eth1`. The same goes for the case where we access 50.60.70.80:8080 from the router: The packet gets dropped before being sent out since 50.60.70.80 is invalid for `eth1`.
+On most routers the request packet will just be dropped by the output interface without being sent out, since 127.0.0.1 is not a valid source address for interface `eth1`. The same goes for the case where we access 50.60.70.80:8080 from the router: The packet gets dropped before being sent out since 50.60.70.80 is invalid for `eth1`.
 
 #### MASQUERADE rule for router access
 

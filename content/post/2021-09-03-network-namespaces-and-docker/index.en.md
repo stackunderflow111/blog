@@ -104,11 +104,13 @@ The configuration becomes the following after IP addresses are added.
 
 ![setup with ip addresses](images/setup-withip.png)
 
-You might be wondering why a bridge is added by `ip link` command, which is normally used to manage network interfaces. It turns out that a virtual bridge is a bridge + an interface. The setup above is equivalent to the following physical network setup.
+You might be wondering what is a bridge and why a bridge is added by `ip link` command, which is normally used to manage network interfaces. The word "bridge" is just a synonym for switch, and a virtual bridge is a bridge + an interface. The setup above is equivalent to the following physical network setup.
 
 ![physical setup](images/setup-physical.png)
 
 The name `bridge0` appears twice: It's not only the name of the bridge connecting `red`, `blue` and the host machine together, but also the name of the interface the is connect to the bridge on the host machine. In other words, it's a bridge from the perspective of the network namespaces, but it's an interface from the perspective of the host machine. When we add an IP address to `bridge0` using `ip addr add 192.168.15.1/24 dev bridge0`, we are actually adding an IP address to the interface. It's crucial to understand the "double roles" of a virtual bridge.
+
+In [Home network configuration](/p/route-tables-explained/#home-network-configuration) I said that a typical home router has a switch built-in. Actually the switch is usually a virtual bridge managed by software instead of a physical switch.
 
 ## Access the Internet from a network namespace
 
