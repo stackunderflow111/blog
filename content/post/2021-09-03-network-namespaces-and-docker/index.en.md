@@ -96,7 +96,7 @@ and the host can be reached from the network namespace using IP address of the b
 ip netns exec red ping 192.168.15.1
 ```
 
-This is exactly how docker enables container-to-host communication for bridge network. See [this question](https://stackoverflow.com/a/31328031/15293404).
+This is exactly how docker enables container-to-host communication for bridge network. See [this question](https://stackoverflow.com/a/31328031/15293404) for more details.
 
 ## What is a virtual bridge?
 
@@ -176,7 +176,9 @@ ip netns exec red python3 -m http.server 80
 
 how to access it from port 8080 on the host?
 
-We need the following DNAT rule for port 8080 to be accessible from a different machine, according to [DNAT in iptables](/p/iptables-for-routing/#dnat-in-iptables).
+### Different machine access
+
+We need the following DNAT rule for port 8080 to be accessible from a different machine on the same network as the host, according to [DNAT in iptables](/p/iptables-for-routing/#dnat-in-iptables).
 
 ```shell
 iptables -t nat -A PREROUTING -p tcp --dport 8080 -j DNAT --to-destination 192.168.15.2:80
@@ -192,7 +194,7 @@ iptables -t nat -A POSTROUTING -m addrtype --src-type LOCAL -o bridge0 -j MASQUE
 sysctl -w net.ipv4.conf.bridge0.route_localnet=1
 ```
 
-Suppose your machine is connected to the Internet with `eth0` interface and its IP address is 10.0.2.15, now access the published port by `curl 192.168.15.1:8080`, `curl 10.0.2.15:8080` and `curl 127.0.0.1:8080` to make sure everything works well.
+Suppose your machine is connected to the Internet using an interface whose IP address is 10.0.2.15 (this is the default for virtual machines on VirtualBox), now access the published port by `curl 192.168.15.1:8080`, `curl 10.0.2.15:8080` and `curl 127.0.0.1:8080` to make sure everything works well.
 
 What we have added are
 
@@ -237,7 +239,7 @@ When this parameter is set, iptables rules will be applied to packets going thro
 
 ![bridge NAT](images/bridge-nat.png)
 
-I also want to call out that packets from the network namespaces like `blue` or `red` go through the PREROUTING chain instead of the OUTPUT chain, even though the namespaces run on the host machine. The host machine treats the network namespaces as if they are different machines. That is why the PREROUTING chain rule is required even when we do not want other machines on the same network as the host to access the published port.
+I also want to call out that packets from the network namespaces like `blue` or `red` go through the PREROUTING chain instead of the OUTPUT chain, even though the namespaces run on the host machine. The host machine treats the network namespaces as if they are different machines. That is why the PREROUTING chain rule in [Different machine access](#different-machine-access) is required even when we do not enable other machines on the same network as the host to access the published port.
 
 ### Same namespace access
 
@@ -263,7 +265,7 @@ Now, try `ip netns exec red curl 192.168.15.1:8080` and it works!
 
 ### Experiment with Docker
 
-What de described above is exactly how Docker [publishes ports](https://docs.docker.com/config/containers/container-networking/#published-ports) when the option `userland-proxy` is set to `false`. The default value is `true`. I will explain the difference later, and let's see how to configure this option for Docker.
+What we described above is exactly how Docker [publishes ports](https://docs.docker.com/config/containers/container-networking/#published-ports) when the option `userland-proxy` is set to `false`. The default value is `true`. I will explain the difference later, and let's see how to configure this option for Docker.
 
 First, in file `/etc/docker/daemon.json` (create one if not exist), set `userland-proxy` to `false`.
 

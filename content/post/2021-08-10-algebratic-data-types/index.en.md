@@ -20,13 +20,19 @@ Why a pair is called a product? We can make sense of it by counting possible val
 
 ### Commutativity and Associativity
 
-We also have commutative law and associative law for product types. For example, `(a, b)` and `(b, a)` and not strictly the same -- they have different memory layouts, but they are isomorphic, which means there is a one-to-one function between them (here it's just the `swap` function which exchanges the first and second member of the pairs). In this case, commutative law still holds -- up to isomorphism. Similarly, associative law also holds, which means `((a, b), c)` and `(a, (b, c))` are isomorphic.
+The `\(\times\)` operation for numbers satisfies the _commutative law_ and the _associative law_, which means `\(a \times b = b \times a\)` and `\((a \times c) \times c = a \times (b \times c)\)`. Do we also have those laws for product types? Yes! For the commutative law, `(a, b)` and `(b, a)` and not strictly the same -- they have different memory layouts, but they are isomorphic, which means there is a one-to-one function between them (here it's just the `swap` function which exchanges the first and second member of the pairs). In this case, commutative law still holds -- up to isomorphism. Similarly, associative law also holds, which means `((a, b), c)` and `(a, (b, c))` are isomorphic.
 
 ### Identity Element
 
 The product operation for numbers has an identity element 1 such that `\(1 \times a = a\)` and `\(a \times 1 = a\)`. Note that product is commutative so it's sufficient to specify either `\(1 \times a = a\)` or `\(a \times 1 = a\)`. Do we also have such identity element for types? According to the approach of counting possible values, we want to find a type which has only one value. In fact, such a type is called a *unit type*. In Haskell the unit type is written as `()` and contains only one value: `()`. Similar types are `void` in C++, `NoneType` in Python (the corresponding value is `None`) and `Unit` in Scala (the value is `()`). 
 
-Does `\(1 \times a = a\)` also holds for product types? Yes! It's easy to argue that `((), a)` and `a` are isomorphic. As a result, we say the set of types is a commutative monoid up to the product operation, and the unit type is the identity element.
+Does `\(1 \times a = a\)` also holds for product types? Yes! It's easy to argue that `((), a)` and `a` are isomorphic. As a result, we say the set of types is a _commutative monoid_ up to the product operation, since
+
+- the product operation is associative (so it's a _semigroup_)
+- we have an identity element (the unit type) for the product operation (so it's a _monoid_)
+- the product operation is commutative (so it's a _commutative monoid_)
+
+Comparing with numbers, the set of numbers is also a commutative monoid, but the set of real numbers excluding 0 satisfies an additional property: Every element `\(a\)` in the set has an unique _inverse element_ `\(b\)` such that `\(a \times b = 1\)`, and we usually denote the `\(b\)` as `\(a^{-1}\)`. The existence of the inverse element makes the set of real numbers excluding 0 a _commutative group_, and enables us to define the inverse operation of product, which is called _division_  and defined as `\(a / b = a \times b^{-1}\)`. We do not have the inverse element for types, so there is no division operation for types.
 
 ## Sum Types 
 
@@ -49,7 +55,7 @@ Either (Either a b) c  ~ Either a (Either b c)
 
 ### Identity Element
 
-What is the identity element corresponding to 0 in numbers? It should be a type with 0 possible values, so it's called the empty type. In Haskell it's `Void` and in Scala it's `Nothing`. A lot of languages do not have such type, like C++. Note that the type `void` in C++ is a unit type instead of an empty type. Here is the difference between Haskell `Void` and C++ `void`. 
+The identity element of numbers for `\(+\)` is 0, so what is the identity element for types? It should be a type with 0 possible values, so it's called the empty type. In Haskell it's `Void` and in Scala it's `Nothing`. A lot of languages do not have such type, like C++. Note that the type `void` in C++ is a unit type instead of an empty type. Here is the difference between Haskell `Void` and C++ `void`. 
 
 In Haskell, we can define functions like this:
 
@@ -79,6 +85,8 @@ Note that in other languages, we have functions returning the empty type and the
 
 Let's go back to sum type. `Void` is indeed the identity element for sum operation because `Either Void a` is isomorphic to `a` (there is no way to construct the `Left` version of `Either Void a` so it's essentially the same as `a`). As a result, the set of types is also a commutative monoid up to the sum operation, and the identity element is the empty type `Void`. 
 
+Comparing with numbers, the set of numbers is a commutative group and the inverse element of number `\(a\)` is `\(-a\)`. As a result, we can define the inverse operation of sum, which is called _minus_ and defined as `\(a - b = a + (-b)\)`. We don't have a minus operation for types.
+
 ## Summary of Product and Sum Types
 
 Below is a table summerizing product and sum types.
@@ -103,7 +111,7 @@ Considering that the set of types:
 - satisfies the distributive law
 - the identity element of sum is also the annihilating element of product
 
-We get the conclusion that *the set of types is a __semiring__*.
+We call such structure a _semiring_, and **the set of types is a semiring**.
 
 ## Interesting data types
 
@@ -144,7 +152,7 @@ x &= \frac{1}{1-a} \\
 &= 1 + a + aa + aaa + \cdots
 \end{aligned}`
 $$
-The same equation could be obtained using Taylor series. Remember the Taylor series for `\(f(x)\)` at point `\(x_0 = 0\)` is
+The same equation could be obtained using Taylor series by expanding `\(f(a) = \frac{1}{1-a}\)` at point `\(a_0 = 0\)`. Remember the Taylor series for `\(f(x)\)` at point `\(x_0 = 0\)` is
 
 $$
 f(x) = f(0) + \frac{f'(0)}{1!}x + \frac{f''(0)}{2!}x^2 + \frac{f'''(0)}{3!}x^3 + \cdots
@@ -223,7 +231,7 @@ case object Nil extends List[Nothing]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
 ```
 
-While being a functional language, Scala defines algebratic data types using a different form than Haskell, that is because Scala is also an object oriented langauge.
+While being a functional language, Scala defines algebratic data types using a different form than Haskell. It's more similar to C++ such that product types are represented as classes and sum types are represented as subclass relations. That is because in addition of being functional, Scala is also an object oriented langauge.
 
 ## Function Types and Exponentials
 
