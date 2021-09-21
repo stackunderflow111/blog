@@ -98,6 +98,12 @@ ip netns exec red ping 192.168.15.1
 
 This is exactly how docker enables container-to-host communication for bridge network. See [this question](https://stackoverflow.com/a/31328031/15293404) for more details.
 
+## What are separated by network namespaces?
+
+From the output of `ip link` from both the host and the `red` namespace (`ip -n red link`) we see that network interfaces are separated. Other networking configurations, like route table (shown by `ip route`) and iptables are also separated. Therefore, network namespaces are like separate machines to the host. 
+
+Notice that docker (and other container tools) use several namespaces in combination. In addition to network namespaces, they use PID namespaces, mount namespaces, UTS namespaces, etc. However, for the purpose of this article we only care about network namespaces. To learn about other namespaces, you can find resources in [Containers Deep Dive](/p/containers-deep-dive/).
+
 ## What is a virtual bridge?
 
 The configuration becomes the following after IP addresses are added.
