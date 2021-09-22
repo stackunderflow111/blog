@@ -44,9 +44,9 @@ params:
             <a href="https://github.com/rstudio/blogdown" 
                target="_blank" 
                rel="noopener">
-                Blogdown
+                <b>Blogdown</b>
             </a> 
-            Framework and R Markdown
+            Framework
 
     dateFormat:
         published: Jan 02, 2006
