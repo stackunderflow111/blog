@@ -10,7 +10,7 @@ tags:
   - networking
 slug: kubernetes-pods-networking
 image: images/network.jpg
-description: the fourth post in series Container Networking Explained
+description: the second post in series Container Networking Explained
 ---
 
 ## Pods and their IP addresses

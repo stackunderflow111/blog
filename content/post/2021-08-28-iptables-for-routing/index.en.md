@@ -7,7 +7,6 @@ categories:
 tags:
   - networking
 image: images/iptables-filter.jpeg
-description: the second post in series Container Networking Explained
 ---
 
 Iptables provide 5 tables (filter, nat, mangle, security, raw), but the most commonly used are the _filter_ table and the _nat_ table. Tables are organized as _chains_, and there are totally 5 predefined chains, PREROUTING, POSTROUTING, INPUT, FORWARD and OUTPUT.

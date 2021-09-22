@@ -8,7 +8,6 @@ categories:
 tags:
   - networking
 image: images/router.jpg
-description: the first post in series Container Networking Explained
 ---
 
 *Routing* is a process that determines the output interface of an IP packet by matching its destination address. Other information could also be set during routing, like the gateway address of the packet. The routing process is generally configured by *route tables*, which is shown using the command `ip route`. 

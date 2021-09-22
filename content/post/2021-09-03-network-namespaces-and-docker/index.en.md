@@ -8,7 +8,7 @@ tags:
   - container
   - networking
 image: images/docker.jpeg
-description: the third post in series Container Networking Explained
+description: the first post in series Container Networking Explained
 ---
 
 ## Prerequisites
