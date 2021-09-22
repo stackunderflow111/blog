@@ -3,12 +3,12 @@ title: Network Namespaces and Docker
 author: Stack Underflow
 date: '2021-09-03'
 categories:
-  - Tech
-tags:
   - Linux
+tags:
+  - container
   - networking
-image: images/network.jpg
-description: the third post in series Kubernetes Networking Explained
+image: images/docker.jpeg
+description: the third post in series Container Networking Explained
 ---
 
 ## Prerequisites
@@ -298,4 +298,8 @@ iptables -vL -t nat
 ```
 
 What is the `userland-proxy` option? It's an alternative way to publish ports. when its value is `true`, Docker will start a proxy listening on published ports and redirect the traffic to the desired container. For example, for the `nginx` container above, it will listen on 0.0.0.0:8080 and redirect the traffic to 172.17.0.2:80 (Suppose `nginx` runs in such IP address). Setting `userland-proxy` to `false` triggers some bugs and compatibility issues in older kernels so Docker keeps the default option to be `true`. You can see the discussion in [this issue](https://github.com/moby/moby/issues/14856). When the value is `true`, the iptables rules are slightly different than what we shown above since we are describing an iptables-only approach.
+
+## Recommended resources
+
+[Container Networking From Scratch](https://youtu.be/6v_BDHIgOY8)
 

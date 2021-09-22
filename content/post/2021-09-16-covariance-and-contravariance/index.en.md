@@ -3,7 +3,7 @@ title: Covariance and Contravariance
 author: Stack Underflow
 date: '2021-09-16'
 categories:
-  - Tech
+  - Programming
 tags:
   - object-oriented-programming
 slug: covariance-and-contravariance

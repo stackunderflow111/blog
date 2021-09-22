@@ -5,7 +5,7 @@ date: '2021-09-12'
 slug: covariance-and-contravariance-categorically
 image: images/functor.jpeg
 categories: 
-  - Tech
+  - Programming
 tags:
   - functional-programming
   - category-theory

@@ -3,7 +3,7 @@ title: Algebratic Data Types
 author: Stack Underflow
 date: '2021-08-10'
 categories:
-  - Tech
+  - Programming
 tags:
   - functional-programming
   - category-theory

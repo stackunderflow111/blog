@@ -3,12 +3,11 @@ title: Iptables for Routing
 author: Stack Underflow
 date: '2021-08-28'
 categories:
-  - Tech
+  - Linux
 tags:
   - networking
-  - Linux
 image: images/iptables-filter.jpeg
-description: the second post in series Kubernetes Networking Explained
+description: the second post in series Container Networking Explained
 ---
 
 Iptables provide 5 tables (filter, nat, mangle, security, raw), but the most commonly used are the _filter_ table and the _nat_ table. Tables are organized as _chains_, and there are totally 5 predefined chains, PREROUTING, POSTROUTING, INPUT, FORWARD and OUTPUT.
@@ -184,3 +183,10 @@ The situation that a machine in the internal network access a service exposed th
 The case where a machine access itself through hairpin NAT is similar, but a little bit harder to reason. I include a diagram below. You might be wondering why a machine may access itself through hairpin NAT. One situation is when a group of machines are providing a service which is load-balanced by the router. If one of the machines access the service and the router happens to route the request back to the machine itself, a hairpin NAT looping back to the same machine will happen.
 
 ![hairpin same machine](images/hairpin-same.png)
+
+## Recommended resources
+
+The video series below explains iptables and other networking related topics in great detail.
+
+- [金枪鱼之夜：坏人的 iptables 小讲堂](https://youtu.be/w_vGD-96O54)
+- [金枪鱼之夜：坏人的 iptables 小讲堂第二弹](https://youtu.be/Vnh8hYk6wZE) 

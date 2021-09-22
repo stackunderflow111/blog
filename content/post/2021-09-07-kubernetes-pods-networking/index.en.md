@@ -1,15 +1,16 @@
 ---
-title: Pods Networking
+title: Kubernetes Pods Networking
 author: Stack Underflow
 date: '2021-09-07'
 categories:
-  - Tech
+  - Linux
 tags:
+  - container
   - kubernetes
   - networking
-slug: pods-networking
+slug: kubernetes-pods-networking
 image: images/network.jpg
-description: the fourth post in series Kubernetes Networking Explained
+description: the fourth post in series Container Networking Explained
 ---
 
 ## Pods and their IP addresses
@@ -133,7 +134,11 @@ The diagram below shows how the packet gets packed and unpacked.
 
 ![packet flannel](images/flannel-packet.png)
 
-This is how the default backend, the `udp` backend, works. flannel also provides a `vxlan` backend, which achieves better performance by doing all the UDP packing and unpacking stuff in the kernel instead of an user-space process `flanneld`.
+You might be thinking that UDP is unreliable. Yes it's unreliable but it doesn't matter for our use case here. The job of flannel is to route IP packets. In other words, flannel works on layer 3, and reliability is not a requirement of this layer. Upper layers like TCP will implement reliable connection.
+
+What we described above is how the `udp` backend of flannel works. Flannel also provides a `vxlan` backend, which achieves better performance by doing all the UDP packing and unpacking stuff in the kernel instead of an user-space process `flanneld`. 
+
+In addition to `udp` and `vxlan`, flannel also has a `host-gw` backend which works like [Switched network](#switched-network) but manages the routing rules automatically. This backend has the best performance but works only in switched network.
 
 ## Calico
 
@@ -195,3 +200,10 @@ The table summarizes the pros and cons of different networking configurations.
 | calico   | good performance and sophisticated network policies | not so simple |
 
 What we should remember is that whichever configuration we choose, the goal is the same: Pods should communicate with each other without NAT.
+
+## Recommended resources
+
+- [Container Networking From Scratch](https://youtu.be/6v_BDHIgOY8)
+- [Tutorial: Communication Is Key - Understanding Kubernetes Networking - Jeff Poole, Vivint Smart Home](https://youtu.be/InZVNuKY5GY)
+- [Kubernetes: Flannel networking](https://blog.laputa.io/kubernetes-flannel-networking-6a1cb1f8ec7c)
+- [Calico Routing Modes](https://youtu.be/MpbIZ1SmEkU)

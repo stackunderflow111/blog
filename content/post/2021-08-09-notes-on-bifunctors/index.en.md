@@ -4,7 +4,7 @@ description: From Bartosz Milewski's lecture
 author: Stack Underflow
 date: '2021-08-09'
 categories:
-  - Tech
+  - Programming
 tags:
   - category-theory
 slug: note-on-bifunctors

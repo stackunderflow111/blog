@@ -4,9 +4,10 @@ author: Stack Underflow
 date: '2021-09-21'
 slug: containers-deep-dive
 categories:
-  - Tech
+  - Linux
 tags:
-  - containers
+  - container
+image: images/landscape.png
 description: A collection of resources on containers
 ---
 
