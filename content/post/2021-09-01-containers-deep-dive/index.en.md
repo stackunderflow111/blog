@@ -7,7 +7,6 @@ categories:
   - Linux
 tags: 
   - container
-  - networking
 image: images/future-world.jpg
 ---
 
@@ -43,7 +42,7 @@ This is a series of blog posts explaining how container networking behaves. If y
 
 ## The containers ecosystem
 
-The article series [Dockerless](https://mkdev.me/en/posts/dockerless-part-1-which-tools-to-replace-docker-with-and-why) explains tools other than Docker to work with containers. The course advertised in the articles [DOCKERLESS: Re-explore containers from open standards perspective](https://courses.mkdev.me/p/dockerless-re-explore-containers-from-open-standards-perspective) (note: 💲) explains the topics in more detail, including:
+The Udemy course [Dockerless: Deep Dive Into What Containers Really are About](https://www.udemy.com/course/dockerless/) explains the containers ecosystem in great detail, including:
 
 - Low level container standard (OCI) and tools (like `runc`)
 - Tools other than Docker to work with containers (like `buildah` and `podman`)
