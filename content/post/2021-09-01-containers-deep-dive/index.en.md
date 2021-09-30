@@ -28,8 +28,8 @@ This is a series of blog posts explaining how container networking behaves. If y
 
 - [Network Namespaces and Docker](/p/network-namespaces-and-docker/)
 - [Kubernetes Pods Networking](/p/kubernetes-pods-networking/)
-- Services Networking (todo)
-- DNS (todo)
+- Kubernetes Services Networking (todo)
+- Kubernetes DNS (todo)
 
 ### Resources
 
