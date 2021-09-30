@@ -204,6 +204,6 @@ We should remember that whichever configuration we choose, the goal is the same:
 ## Recommended resources
 
 - [Container Networking From Scratch](https://youtu.be/6v_BDHIgOY8)
-- [Tutorial: Communication Is Key - Understanding Kubernetes Networking - Jeff Poole, Vivint Smart Home](https://youtu.be/InZVNuKY5GY)
+- [Tutorial: Communication Is Key - Understanding Kubernetes Networking](https://youtu.be/InZVNuKY5GY)
 - [Kubernetes: Flannel networking](https://blog.laputa.io/kubernetes-flannel-networking-6a1cb1f8ec7c)
 - [Calico Routing Modes](https://youtu.be/MpbIZ1SmEkU)

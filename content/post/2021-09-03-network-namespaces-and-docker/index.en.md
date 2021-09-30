@@ -100,9 +100,9 @@ This is exactly how Docker enables container-to-host communication for bridge ne
 
 ## What are separated by network namespaces?
 
-From the output of `ip link` from both the host and the `red` namespace (`ip -n red link`) we see that network interfaces are separated. Moreover, other networking configurations, like route table (shown by `ip route`) and iptables are also separated. Therefore, network namespaces are like separate machines to the host. 
+Run `ip link` and then `ip -n red link`, we see that network interfaces are separated. Moreover, other networking configurations, like route table (shown by `ip route`) and iptables are also separated. In other words, network namespaces are like separate machines to the host. 
 
-Notice that Docker (and other container tools) use several namespaces in combination. In addition to network namespaces, they use PID namespaces, mount namespaces, UTS namespaces, etc. However, for this article, we only care about network namespaces. To learn about other namespaces, you can find resources in [Containers Deep Dive](/p/containers-deep-dive/).
+Notice that Docker (and other container tools) use several namespaces in combination. In addition to network namespaces, they use PID namespaces, mount namespaces, UTS namespaces, etc. However, for this article, we only care about network namespaces. To learn about other namespaces, you can find resources in [Containers Deep Dive](/p/containers-deep-dive/#linux-namespaces).
 
 ## What is a virtual bridge?
 
@@ -110,7 +110,7 @@ The configuration becomes the following after IP addresses are added.
 
 ![setup with ip addresses](images/setup-withip.png)
 
-You might wonder what a bridge is and why a bridge is added by the `ip link` command, which is normally used to manage network interfaces. The word "bridge" is just a synonym for "switch", and a virtual bridge is a bridge + an interface. The setup above is equivalent to the following physical network setup.
+You might wonder what a bridge is and why a bridge is added by the `ip link` command, which is normally used to manage network interfaces. The word "bridge" is just a synonym for "switch", but a Linux virtual bridge is more than a switch. It's a switch + an interface. The setup above is equivalent to the following physical network setup.
 
 ![physical setup](images/setup-physical.png)
 
