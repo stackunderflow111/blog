@@ -42,7 +42,7 @@ This is a series of blog posts explaining how container networking behaves. If y
 
 ## The containers ecosystem
 
-The Udemy course [Dockerless: Deep Dive Into What Containers Really are About](https://www.udemy.com/course/dockerless/) explains the containers ecosystem in great detail, including:
+The Udemy course [Dockerless: Deep Dive Into What Containers Really are About](https://www.udemy.com/course/dockerless/) ([How to get Udemy courses for free](/resources/#tricks-to-get-them-for-free-or-at-a-low-cost)) explains the containers ecosystem in great detail, including:
 
 - Low level container standard (OCI) and tools (like `runc`)
 - Tools other than Docker to work with containers (like `buildah` and `podman`)

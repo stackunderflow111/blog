@@ -1,5 +1,6 @@
 baseurl: https://stackunderflow.dev
 languageCode: en-us
+enableEmoji: true
 ignoreFiles:
   - \.Rmd$
   - \.Rmarkdown$

@@ -16,7 +16,7 @@ description: the first post in the series Container Networking Explained
 The video [Network Namespaces Basics Explained in 15 Minutes](https://youtu.be/j_UUnlVC2Ss) is a good introduction to how Linux network namespaces work. However, this video has several mistakes, so getting a basic idea of the command line is sufficient.
 
 ## Set up the environment
-To experiment with the content in this article, you need a Linux machine. If you don't have Linux installed, a virtual machine also works well. You can also use my Github repository [network-namespace-experiment](https://github.com/stackunderflow101/network-namespace-experiment), which provides a minimal Vagrantfile and the scripts to do the experiment.
+To experiment with the content in this article, you need a Linux machine. If you don't have Linux installed, a virtual machine also works well. You can also use my Github repository [network-namespace-experiment](https://github.com/stackunderflow111/network-namespace-experiment), which provides a minimal Vagrantfile and the scripts to do the experiment.
 
 We can set up two network namespaces connected to a bridge with the following commands:
 
