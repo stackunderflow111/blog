@@ -12,13 +12,7 @@ title: Resources
 
 For Udemy courses, check out this [Automatic Udemy Enroller](https://github.com/aapatre/Automatic-Udemy-Course-Enroller-GET-PAID-UDEMY-COURSES-for-FREE).
 
-<!---
-<p>
-Google for "Z Library" and "Library Genesis".
-</p>
---->
-
-[O'Reilly Learning](https://www.oreilly.com/online-learning/) has a lot of great books, and you can get a subscription for only \$99/year by obtaining an [ACM Professional Membership](https://www.acm.org/membership/membership-options). It's even cheaper for people from a developing country. For example, the price for China is only \$25/year. _Hey ACM, is this how you treat the "biggest threat" of United States_ :joy:?
+I **won't** recommend sites like z-library or libgen where you get books for free :laughing:. [O'Reilly Learning](https://www.oreilly.com/online-learning/) has a lot of great books, and you can get a subscription for only \$99/year by obtaining an [ACM Professional Membership](https://www.acm.org/membership/membership-options). It's even cheaper for people from a developing country. For example, the price for China is only \$25/year. _Hey ACM, is this how you treat the "biggest threat" of United States_ :rolling_on_the_floor_laughing:?
 
 ## How computers work
 
