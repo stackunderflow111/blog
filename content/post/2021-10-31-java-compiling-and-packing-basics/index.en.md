@@ -42,7 +42,7 @@ Simple and easy.
 
 What if we want to use a third-party package for our application?
 
-We will be using the `org.apache.commons.commons-lang3` package, so [download it here](https://mvnrepository.com/artifact/org.apache.commons/commons-lang3/3.12.0) and put it into the `lib` folder of the project. The folder structure should look like the following picture:
+We will be using the `org.apache.commons.commons-lang3` package, so [download it here](https://mvnrepository.com/artifact/org.apache.commons/commons-lang3/3.12.0) and put it into the `lib` folder of the project. The folder structure should look like the following:
 
 ![hello-world-lib-files](images/hello-world-lib-files.png)
 
@@ -84,7 +84,7 @@ Error: Could not find or load main class HelloWorld
 Caused by: java.lang.ClassNotFoundException: HelloWorld
 ```
 
-It turns out that when not specifying `-classpath`, it has a default value: the current working directory. That is why we can run `java HelloWorld` directly when there are no dependencies: Java can find the `HelloWorld.class` file in the default classpath. However, now we are overriding the classpath value, so we should manually add the current directory to classpath.
+It turns out that when not specifying `-classpath`, it has a default value: the current working directory. That is why we can run `java HelloWorld` directly when there are no dependencies: Java can find the `HelloWorld.class` file in the default classpath. However, now we are overriding the classpath value, so we should manually add the current directory.
 
 ```shell
 $ java -classpath lib/commons-lang3-3.12.0.jar:./ HelloWorld
@@ -94,7 +94,7 @@ Hello world
 
 This time it works!
 
-The takeaway is that both the Java compiler (`javac`) and the Java virtual machine (`java`) need a classpath, which specifies where to load the classes. Classpath is an array value, and the elements could be either local filesystem paths or `.jar` packages. Third-party packages should be added to classpath for our program to compile and run correctly.
+The takeaway is that both the Java compiler (`javac`) and the Java virtual machine (`java`) need a classpath, which specifies where to load the classes. Classpath is an array separated by `:`, and the elements could be either local filesystem paths or `.jar` files. Third-party packages imported into our program should be added to classpath to support compilation and execution.
 
 ## Dependency scopes
 
@@ -109,11 +109,11 @@ Such complexity leads to the concept of dependency scopes in build tools like Ma
 | runtime            | runtimeOnly         | runtime                              | JDBC connectors |
 | test               | testImplementation  | compile time and runtime (test only) | JUnit           |
 
-An example of those different scopes is shown in the [spring-framework-petclinic](https://github.com/spring-petclinic/spring-framework-petclinic) project, which is built using the plain old Spring framework (i.e. no Spring Boot), and is meant to be packaged as a `war` archive and deployed to Tomcat. We see that [Tomcat packages are added to compile-time classpath only](https://github.com/spring-petclinic/spring-framework-petclinic/blob/59561e4b283f31993fb9e54a3280c94402f3ea6c/pom.xml#L105-L116) since the Tomcat container at runtime will provide them. In addition, [The MySQL driver is listed as a runtime dependency](https://github.com/spring-petclinic/spring-framework-petclinic/blob/59561e4b283f31993fb9e54a3280c94402f3ea6c/pom.xml#L519-L523). Finally, [Spring test is a test dependency since it's only required during testing](https://github.com/spring-petclinic/spring-framework-petclinic/blob/59561e4b283f31993fb9e54a3280c94402f3ea6c/pom.xml#L238-L242).
+An example of those different scopes is shown in the [spring-framework-petclinic](https://github.com/spring-petclinic/spring-framework-petclinic) project, which is built using the plain old Spring framework (i.e. no Spring Boot), and is meant to be packaged as a `war` archive and deployed to Tomcat. We see that [Tomcat packages are added to compile-time classpath only](https://github.com/spring-petclinic/spring-framework-petclinic/blob/59561e4b283f31993fb9e54a3280c94402f3ea6c/pom.xml#L105-L116) since at runtime the Tomcat container will provide them. In addition, [The MySQL driver is listed as a runtime dependency](https://github.com/spring-petclinic/spring-framework-petclinic/blob/59561e4b283f31993fb9e54a3280c94402f3ea6c/pom.xml#L519-L523). Finally, [Spring test is a test dependency since it's only required during testing](https://github.com/spring-petclinic/spring-framework-petclinic/blob/59561e4b283f31993fb9e54a3280c94402f3ea6c/pom.xml#L238-L242).
 
 ## Packaging a Java program
 
-Let's go back to our `HelloWorld`. We can use the' jar' command to create a Jar archive out of `HelloWorld.class`.
+Let's go back to our `HelloWorld`. We can use the `jar` command to create a Jar archive out of `HelloWorld.class`.
 
 ```shell
 jar -cf hello-world.jar HelloWorld.class
@@ -132,7 +132,7 @@ Manifest-Version: 1.0
 Created-By: 11.0.13 (Eclipse Adoptium)
 ```
 
-It does not have the `Main-Class` attribute so this `hello-world.jar` is __not executable__, which means we cannot execute it using `java -jar hello-workd.jar`. However, we can execute it in the traditional way -- supplying `-classpath`.
+It does not have the `Main-Class` attribute so this `hello-world.jar` is __not executable__, which means we cannot execute it using `java -jar hello-world.jar`. However, we can execute it in the traditional way -- supplying `-classpath`.
 
 ```shell
 $ java -classpath lib/commons-lang3-3.12.0.jar:hello-world.jar HelloWorld
@@ -140,7 +140,7 @@ $ java -classpath lib/commons-lang3-3.12.0.jar:hello-world.jar HelloWorld
 Hello world
 ```
 
-We can add the `Main-Class` attribute to `MANIFEST.MF` and make it executable. Another attribute, `Class-Path`, should also be added since we are using third-party dependencies. To do so, let's create a new file `manifest-overrides.txt`. 
+We can add the `Main-Class` attribute to `MANIFEST.MF` and make it executable. Another attribute, `Class-Path`, is also needed since we are using third-party dependencies. To do so, let's create a new file `manifest-overrides.txt`. 
 
 ![manifest-overrides-files](images/manifest-overrides-files.png)
 
@@ -169,7 +169,7 @@ Class-Path: lib/commons-lang3-3.12.0.jar
 Created-By: 11.0.13 (Eclipse Adoptium)
 ```
 
-Then we execute our `hello-world.jar`.
+Now we execute our `hello-world.jar`.
 
 ```shell
 $ java -jar hello-world.jar
@@ -182,7 +182,7 @@ It works! Such a Jar file is called an **executable Jar** since it can be execut
 
 However, if we move `hello-world.jar` to another location, executing `java -jar hello-world.jar` will fail. The reason is that the `Class-Path` attribute only adds the listed Jar archives to Java classpath, it does not magically provide them. Therefore, the Java virtual machine still expects the `lib/commons-lang3-3.12.0.jar` file in our local filesystem.
 
-This is not good when deploying an application (e.g. a website), since we have to provide all the supporting Jars for the application to run on our servers. That is why people come up with the idea of *fat Jars*: Jar archives that contain our classes and third-party classes.
+This is not good when deploying an application (e.g., a website), since we have to provide all the supporting Jars for the application to run on our servers. That is why people come up with the idea of *fat Jars*: Jar archives that contain our classes and third-party classes.
 
 We can create a fat Jar for our HelloWorld application manually. To do so, we need to:
 
