@@ -1,8 +1,8 @@
 ---
-title: Java Compiling and Packing Basics
+title: Java Compiling and Packaging Basics
 author: Stack Underflow
 date: '2021-10-31'
-slug: java-compiling-and-packing-basics
+slug: java-compiling-and-packaging-basics
 categories:
   - Programming
 tags:
