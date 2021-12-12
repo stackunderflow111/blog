@@ -3,30 +3,29 @@ title: "Kubernetes Services Networking"
 description: 
 date: 2021-11-25T18:50:24-08:00
 image: 
-hide: true
 ---
 
 ## Kubernetes services
 
-In Kubernetes, pods come and go, which means they might be stopped, removed, or relocated when needed. For example, below is a hello-world application. When something bad happens at node 2, like power failure or insufficient disk space, pod hello-world-2 will be removed and a new pod, hello-world-3 will be created in node 3, with a different IP address than hello-world-2. In addition, we have two pods for hello-world application, it will be great if we can do load balancing automatically.
+In Kubernetes, pods come and go, which means they might be stopped, removed, or relocated when needed. For example, below is a hello-world application. When something bad happens at node 2, like power failure or insufficient disk space, pod hello-world-2 will be removed, and a new pod, hello-world-3 will be created in node 3, with a different IP address than hello-world-2. In addition, we have two pods for the hello-world application. It will be great if we can do load balancing automatically.
 
 ![pods](images/pods.png)
 
-That is why we have the concept of services, which provide stable IP addresses to pods and performs load balancing. In the picture below, we have a service, hello-world-service for the two hello-world pods. Other pods communicating with hello-world just connect to the hello-world-service, and they do not need to deal with the pods directly.
+That is why we have the concept of services, which provide stable IP addresses to pods and perform load balancing. In the picture below, we have a service, hello-world-service for the two hello-world pods. Other pods communicating with hello-world just connect to the hello-world-service, and they do not need to deal with the pods directly.
 
 ![services](images/services.png)
 
-To be precise, what we discussed above is a clusterIP service. We have other types of services, like nodePort, which is clusterIP + a port on every nodes. We will discuss their implementations below.
+To be precise, what we discussed above is a clusterIP service. We have other types of services, like nodePort, which is clusterIP + a port on every node. We will discuss their implementations below.
 
 ## ClusterIP implementation: Iptables
 
-Below we will examine the iptables implementation for a service. Let's use minikube to create a kubernetes cluster first.
+Below we will examine the iptables implementation for a service. Let's use Minikube to create a Kubernetes cluster first.
 
 ```shell
 minikube start --nodes 3 --container-runtime containerd --kubernetes-version 1.22.4 
 ```
 
-Here we started a three nodes cluster with flannel and containerd. At the time of writing, the latest stable Kubernetes version is 1.22.4 so let's use it.
+Here we started a three-node cluster with flannel and containerd. At the time of writing, the latest stable Kubernetes version is 1.22.4 so let's use it.
 
 Then, let's apply the following yaml to deploy a hello-world application.
 
