@@ -12,9 +12,10 @@ pipx install radian
 
 Using `pipx` (https://pypa.github.io/pipx/) is recommended since it creates a dedicated virtual environment.
 
-R packages:
+Run the following inside R:
 
 ```sh
 install.packages('blogdown') # installs blogdown
 install.packages('languageserver') # installs R language server, required if you are using VSCode
+blogdown::install_hugo() # install Hugo (latest version)
 ```
